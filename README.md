@@ -25,15 +25,15 @@ To set up the project locally, follow these steps: 1. Clone the repository:
 git clone https://github.com/your-username/pokemon-battle-game-frontend.git
 cd pokemon-battle-game-frontend
 
-    2.	Install dependencies:
+2.	Install dependencies:
 
-npm install
+    `npm install`
 
 Ensure you have Node.js installed.
 
-    3.	Start the development server:
+3.	Start the development server:
 
-npm run dev
+    `npm run dev`
 
 The application will be accessible at http://localhost:3000.
 
