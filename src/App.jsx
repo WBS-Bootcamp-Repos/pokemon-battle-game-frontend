@@ -12,7 +12,7 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-base-200 flex flex-col items-center p-6">
-      <h1 className="text-4xl font-bold text-primary mb-6">Pokémon Battle Game</h1>
+      <h1 className="text-4xl font-bold text-primary mb-6">Pokémon Battle Game - Made just for FUN - Please remove everything and Write your Codes</h1>
       <div className="flex gap-6 mb-6">
         <div className="card w-64 bg-base-100 shadow-xl">
           <div className="card-body">
