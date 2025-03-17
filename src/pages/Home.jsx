@@ -1,36 +1,21 @@
 import { useEffect, useState } from "react";
 import PokemonCard from "../components/PokemonCard";
+import { getAllPokemon } from "../data/api";
 
 const Home = () => {
   const [pokes, setPokes] = useState([]);
 
   useEffect(() => {
-    const fetchPokes = async () => {
+    const getAndSetPokemon = async () => {
       try {
-        const response = await fetch(
-          "https://pokeapi.co/api/v2/pokemon?limit=20"
-        );
-        const data = await response.json();
-        const pokes = data.results;
-
-        const pokeWithSprite = pokes.map((poke, i) => ({
-          ...poke,
-          // use default_front sprite URL so we can have an image
-          sprite: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${
-            i + 1
-          }.png`,
-          //arrays are zero indexed, and pokemon numbering starts at 1, so id of i + 1 gives us the right pokemon
-          id: i + 1,
-        }));
-        console.log(pokeWithSprite);
-
-        setPokes(pokeWithSprite);
+        const allPokemon = await getAllPokemon();
+        console.log(allPokemon);
+        setPokes(allPokemon);
       } catch (error) {
         console.error("Error fetching pokes:", error);
       }
     };
-
-    fetchPokes();
+    getAndSetPokemon();
   }, []);
 
   return (

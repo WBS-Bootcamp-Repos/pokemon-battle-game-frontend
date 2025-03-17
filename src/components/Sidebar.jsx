@@ -2,7 +2,7 @@ import { Link, NavLink } from "react-router";
 
 const Sidebar = () => {
   return (
-    <div className="flex flex-col p-10 gap-4 justify-between shadow-xl">
+    <div className="flex flex-col p-10 gap-4 justify-between shadow-xl w-1/4">
       <div className="flex flex-col gap-4">
         <Link to={"/"}>
           <img src="/logo.png" alt="Pokemon Logo" className="w-64" />
