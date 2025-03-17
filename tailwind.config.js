@@ -1,9 +1,13 @@
-import daisyui from 'daisyui';
+import daisyui from "daisyui";
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        Jersey15: ["Jersey 15", "sans-serif"],
+      },
+    },
   },
   plugins: [daisyui],
 };
