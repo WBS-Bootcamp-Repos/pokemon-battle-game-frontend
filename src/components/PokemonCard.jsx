@@ -1,7 +1,8 @@
 import { Link } from "react-router";
+import { useRoster } from "../context/context";
 
 const PokemonCard = ({ name, id, height, stats }) => {
-  // const hpStat = stats.find((stat) => stat.stat.name === "hp");
+  const { rosterPokemon, setRosterPokemon } = useRoster();
 
   return (
     <div className="flex flex-col border-2 border-b-4 border-black">

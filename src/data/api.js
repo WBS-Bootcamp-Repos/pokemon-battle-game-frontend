@@ -5,7 +5,7 @@ const BASE_URL = "https://pokeapi.co/api/v2/pokemon";
 // Function to get all Pokémon with detailed data
 export const getAllPokemon = async () => {
   try {
-    const response = await axios.get(`${BASE_URL}?limit=20`);
+    const response = await axios.get(`${BASE_URL}?limit=120`);
     const pokemonDetails = await Promise.all(
       response.data.results.map(async (pokemon) => {
         const details = await axios.get(pokemon.url);
