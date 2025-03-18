@@ -1,8 +1,21 @@
 import { Link } from "react-router";
 import { useRoster } from "../context/context";
+import { addToRoster, removeFromRoster } from "../utils/roster";
 
-const PokemonCard = ({ name, id, height, stats }) => {
+const PokemonCard = ({ pokemon }) => {
   const { rosterPokemon, setRosterPokemon } = useRoster();
+  const { name, id, stats } = pokemon;
+
+  // Check if the pokemon is already in the roster
+  const isInRoster = rosterPokemon.some((p) => p.id === id);
+
+  const handleAddToRoster = (pokemon) => {
+    addToRoster(pokemon, setRosterPokemon);
+  };
+
+  const handleRemoveFromRoster = (pokemonId) => {
+    removeFromRoster(pokemonId, setRosterPokemon);
+  };
 
   return (
     <div className="flex flex-col border-2 border-b-4 border-black">
@@ -41,11 +54,15 @@ const PokemonCard = ({ name, id, height, stats }) => {
             show details
           </button>
         </Link>
-        <Link to={`/pokemon/${id}`}>
-          <button className="bg-white border-2 border-y-4 border-black text-black tracking-wide px-4 py-2 hover:bg-black hover:text-white">
-            + add
-          </button>
-        </Link>
+
+        <button
+          className="bg-white border-2 border-y-4 border-black text-black tracking-wide px-4 py-2 hover:bg-black hover:text-white"
+          onClick={() =>
+            isInRoster ? handleRemoveFromRoster(id) : handleAddToRoster(pokemon)
+          }
+        >
+          {isInRoster ? "- remove" : "+ add"}
+        </button>
       </div>
     </div>
   );

@@ -37,7 +37,7 @@ const Home = () => {
       <h1 className="text-4xl">Cool title for homepage</h1>
       <div className="border-t-2 border-black my-4 py-12 grid grid-cols-4 gap-8">
         {currentPokemon.map((p) => (
-          <PokemonCard key={p.id} {...p} />
+          <PokemonCard key={p.id} pokemon={p} />
         ))}
       </div>
       <div className="flex gap-4 justify-between">
