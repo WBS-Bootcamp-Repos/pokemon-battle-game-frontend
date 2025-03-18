@@ -10,7 +10,7 @@ const PokemonCard = ({ name, id, height, stats }) => {
         <div className="bg-black py-2 px-4 w-3/4 clip-diagonal">
           <h2 className="text-white text-xl tracking-wider">{name}</h2>
         </div>
-        <p className="text-xl tracking-wider">HP </p>
+        <p className="text-xl tracking-wider">HP {stats?.hp} </p>
       </div>
       <img
         src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`}
@@ -19,16 +19,20 @@ const PokemonCard = ({ name, id, height, stats }) => {
       />
       <div className="flex flex-col gap-2 p-4">
         <div className="flex gap-4 justify-between">
-          <p>Height </p>
-          <p> {height}</p>
+          <p>attack / special attack</p>
+          <p>
+            {stats?.attack} / {stats?.specialAttack}
+          </p>
         </div>
         <div className="flex gap-4 justify-between">
-          <p>Stats </p>
-          <p> {id}</p>
+          <p>defense / special defense</p>
+          <p>
+            {stats?.defense} / {stats?.specialDefense}
+          </p>
         </div>
         <div className="flex gap-4 justify-between">
-          <p>Stats </p>
-          <p> {id}</p>
+          <p>speed </p>
+          <p> {stats?.speed}</p>
         </div>
       </div>
       <div className="flex gap-4 px-4 pb-4 justify-between">

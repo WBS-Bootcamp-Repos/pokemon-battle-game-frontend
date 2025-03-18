@@ -15,11 +15,11 @@ const App = () => {
             <Route index element={<Home />} />
             <Route path="/roster" element={<Roster />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
-            <Route path="/pokemon/:id" element={<PokemonPage />} />
+            <Route path="/pokemon/:pokeId" element={<PokemonPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
-</div>
+    </div>
   );
 };
 
