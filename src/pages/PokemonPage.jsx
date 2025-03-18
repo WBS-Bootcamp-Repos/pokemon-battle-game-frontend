@@ -2,11 +2,23 @@ import { useParams, useNavigate } from "react-router";
 import { useRoster } from "../context/context";
 import { useState, useEffect } from "react";
 import { getPokemonById } from "../data/api";
+import { addToRoster, removeFromRoster } from "../utils/roster";
 
 const PokemonPage = () => {
   const [currPokemon, setCurrPokemon] = useState({});
+  const { rosterPokemon, setRosterPokemon } = useRoster();
   const { pokeId } = useParams();
   const navigate = useNavigate();
+
+  const isInRoster = rosterPokemon.some((p) => p.id === currPokemon.id);
+
+  const handleAddToRoster = (pokemon) => {
+    addToRoster(pokemon, setRosterPokemon);
+  };
+
+  const handleRemoveFromRoster = (pokemonId) => {
+    removeFromRoster(pokemonId, setRosterPokemon);
+  };
 
   const typeColors = {
     grass: "bg-[#62BC5A]",
@@ -38,7 +50,6 @@ const PokemonPage = () => {
       try {
         const pokeData = await getPokemonById(pokeId);
         setCurrPokemon(pokeData);
-        console.log(pokeData); // Log fetched data
       } catch (error) {
         console.error(error);
       }
@@ -77,8 +88,15 @@ const PokemonPage = () => {
               </p>
             ))}
           </div>
-          <button className="bg-black border-2 border-black border-y-4 text-white tracking-wide px-4 py-2 text-xl hover:bg-white hover:text-black">
-            + add to roster
+          <button
+            className="bg-black border-2 border-black border-y-4 text-white tracking-wide px-4 py-2 text-xl hover:bg-white hover:text-black"
+            onClick={() =>
+              isInRoster
+                ? handleRemoveFromRoster(id)
+                : handleAddToRoster(currPokemon)
+            }
+          >
+            {isInRoster ? "- remove from roster" : "+ add to roster"}
           </button>
         </div>
       </div>
