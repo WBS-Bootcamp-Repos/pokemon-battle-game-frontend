@@ -3,6 +3,7 @@ import { useRoster } from "../context/context";
 import { useState, useEffect } from "react";
 import { getPokemonById } from "../data/api";
 import { addToRoster, removeFromRoster } from "../utils/roster";
+import { ToastContainer } from "react-toastify";
 
 const PokemonPage = () => {
   const [currPokemon, setCurrPokemon] = useState({});
@@ -142,6 +143,7 @@ const PokemonPage = () => {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };

@@ -9,7 +9,7 @@ const Sidebar = () => {
         </Link>
         <nav className="text-3xl p-8 flex flex-col gap-4">
           {[
-            { path: "/", label: "All Pokemon" },
+            { path: "/", label: "All Pokémon" },
             { path: "/roster", label: "My Roster" },
             { path: "/arena", label: "Arena" },
             { path: "/leaderboard", label: "Leaderboard" },
@@ -29,7 +29,7 @@ const Sidebar = () => {
           ))}
         </nav>
       </div>
-      <p>© 2025 | Pokemon battle game</p>
+      <p>© 2025 | Pokémon battle game</p>
     </div>
   );
 };
