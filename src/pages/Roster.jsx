@@ -1,5 +1,6 @@
 import PokemonCard from "../components/PokemonCard";
 import { useRoster } from "../context/context";
+import { ToastContainer } from "react-toastify";
 
 const Roster = () => {
   const { rosterPokemon, setRosterPokemon } = useRoster();
@@ -12,6 +13,7 @@ const Roster = () => {
           <PokemonCard key={p.id} pokemon={p} />
         ))}
       </div>
+      <ToastContainer />
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import PokemonCard from "../components/PokemonCard";
 import { getAllPokemon } from "../data/api";
+import { ToastContainer } from "react-toastify";
 
 const Home = () => {
   const [pokes, setPokes] = useState([]);
@@ -34,7 +35,7 @@ const Home = () => {
 
   return (
     <div className="flex flex-col w-full ">
-      <h1 className="text-4xl">Cool title for homepage</h1>
+      <h1 className="text-4xl">All Pokémon</h1>
       <div className="border-t-2 border-black my-4 py-12 grid grid-cols-4 gap-8">
         {currentPokemon.map((p) => (
           <PokemonCard key={p.id} pokemon={p} />
@@ -65,6 +66,7 @@ const Home = () => {
           <img src="/src/assets/arrow.svg" alt="Arrow right" className="w-4" />
         </button>
       </div>
+      <ToastContainer />
     </div>
   );
 };
