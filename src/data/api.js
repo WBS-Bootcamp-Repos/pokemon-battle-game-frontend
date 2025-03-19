@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const BASE_URL = "https://pokeapi.co/api/v2/pokemon";
+const leaderboardUrl = "http://localhost:3003/leaderboards";
 
 // Function to format stats
 const formatStats = (statsArray) => {
@@ -72,5 +73,15 @@ export const getPokemonById = async (id) => {
   } catch (error) {
     console.error(`Error fetching Pokémon with ID ${id}:`, error);
     return null;
+  }
+};
+
+export const getLeaderboard = async () => {
+  try {
+    const response = await axios.get(`${leaderboardUrl}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching leaderboard data:", error);
+    return [];
   }
 };
