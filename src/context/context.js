@@ -11,4 +11,16 @@ const useRoster = () => {
   return context;
 };
 
-export { RosterContext, useRoster };
+// Item hooks
+const useItems = () => {
+  const { items, updateItemQuantity, buyItem, useItem } = useRoster();
+  return { items, updateItemQuantity, buyItem, useItem };
+};
+
+// Currency hooks
+const useCurrency = () => {
+  const { currency, updateCurrency } = useRoster();
+  return { currency, updateCurrency };
+};
+
+export { RosterContext, useRoster, useItems, useCurrency };
