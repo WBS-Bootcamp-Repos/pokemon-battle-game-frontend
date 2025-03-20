@@ -85,6 +85,7 @@ export const initialBattleState = {
   battleState: BATTLE_STATES.IDLE,
   battleLog: [],
   isPlayerTurn: true,
+  isAttacking: false,
   playerMove: null,
   enemyMove: null,
   activeItem: null,
@@ -108,6 +109,7 @@ export const battleReducer = (state, action) => {
         battleState: BATTLE_STATES.SELECT_POKEMON,
         battleLog: ["A wild " + action.enemy.name + " appeared!"],
         isPlayerTurn: true,
+        isAttacking: false,
       };
 
     // Select a Pokemon to use in battle
@@ -117,6 +119,7 @@ export const battleReducer = (state, action) => {
         playerPokemon: action.pokemon,
         battleState: BATTLE_STATES.PLAYER_TURN,
         battleLog: [...state.battleLog, "Go " + action.pokemon.name + "!"],
+        isAttacking: false,
       };
 
     // Player initiates an attack
@@ -129,6 +132,7 @@ export const battleReducer = (state, action) => {
           `${state.playerPokemon.name} used ${action.move.name}!`,
         ],
         playerMove: action.move,
+        isAttacking: true,
       };
 
     // Complete player's attack and process damage
@@ -156,10 +160,11 @@ export const battleReducer = (state, action) => {
           battleLog: [
             ...state.battleLog,
             `It did ${damageResult.damage} damage!`,
-            damageResult.message,
+            damageResult.effectiveness,
             `Enemy ${state.enemy.name} fainted!`,
             `${state.playerPokemon.name} gained ${state.enemy.level * 2} XP!`,
           ],
+          isAttacking: false,
         };
       }
 
@@ -171,9 +176,10 @@ export const battleReducer = (state, action) => {
         battleLog: [
           ...state.battleLog,
           `It did ${damageResult.damage} damage!`,
-          damageResult.message,
+          damageResult.effectiveness,
         ],
         isPlayerTurn: false,
+        isAttacking: false,
       };
     }
 
@@ -195,6 +201,7 @@ export const battleReducer = (state, action) => {
           `Enemy ${state.enemy.name} used ${enemyMove.name}!`,
         ],
         enemyMove: enemyMove,
+        isAttacking: true,
       };
 
     // Complete enemy's attack and process damage
@@ -227,10 +234,11 @@ export const battleReducer = (state, action) => {
             battleLog: [
               ...state.battleLog,
               `It did ${damageResult.damage} damage!`,
-              damageResult.message,
+              damageResult.effectiveness,
               `${state.playerPokemon.name} fainted!`,
               "You have no usable Pokémon left!",
             ],
+            isAttacking: false,
           };
         }
 
@@ -242,11 +250,12 @@ export const battleReducer = (state, action) => {
           battleLog: [
             ...state.battleLog,
             `It did ${damageResult.damage} damage!`,
-            damageResult.message,
+            damageResult.effectiveness,
             `${state.playerPokemon.name} fainted!`,
             "Choose another Pokémon!",
           ],
           isPlayerTurn: true,
+          isAttacking: false,
         };
       }
 
@@ -258,9 +267,10 @@ export const battleReducer = (state, action) => {
         battleLog: [
           ...state.battleLog,
           `It did ${damageResult.damage} damage!`,
-          damageResult.message,
+          damageResult.effectiveness,
         ],
         isPlayerTurn: true,
+        isAttacking: false,
       };
     }
 
@@ -281,6 +291,7 @@ export const battleReducer = (state, action) => {
             `Go ${action.pokemon.name}!`,
           ],
           isPlayerTurn: false,
+          isAttacking: false,
         };
       } else {
         return {
@@ -291,6 +302,7 @@ export const battleReducer = (state, action) => {
             `${state.playerPokemon.name}, return!`,
             "Choose another Pokémon!",
           ],
+          isAttacking: false,
         };
       }
 
@@ -300,6 +312,7 @@ export const battleReducer = (state, action) => {
         ...state,
         battleState: BATTLE_STATES.USE_ITEM,
         activeItem: action.item,
+        isAttacking: true,
       };
 
     // Flee from battle
@@ -308,6 +321,7 @@ export const battleReducer = (state, action) => {
         ...state,
         battleState: BATTLE_STATES.FLEEING,
         battleLog: [...state.battleLog, "Got away safely!"],
+        isAttacking: false,
       };
 
     // End battle and reset state
@@ -319,6 +333,7 @@ export const battleReducer = (state, action) => {
         battleState: BATTLE_STATES.IDLE,
         battleLog: [],
         isPlayerTurn: true,
+        isAttacking: false,
       };
 
     // Update enemy Pokemon

@@ -72,6 +72,7 @@ const Battle = () => {
     battleState,
     battleLog,
     isPlayerTurn,
+    isAttacking,
     activeItem,
     startBattle,
     selectPokemon,
@@ -384,10 +385,6 @@ const Battle = () => {
                     )}.png`}
                     alt={enemy.name}
                     className="w-32 h-32 pixelated"
-                    onError={(e) => {
-                      e.target.src =
-                        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png";
-                    }}
                   />
                   <span
                     className={`font-pixel text-xs px-2 py-1 rounded capitalize mt-2 ${getTypeColor(
@@ -425,10 +422,6 @@ const Battle = () => {
                         )}.png`}
                         alt={pokemon.name}
                         className="w-24 h-24 mr-3 pixelated"
-                        onError={(e) => {
-                          e.target.src =
-                            "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png";
-                        }}
                       />
                       <div>
                         <h3 className="font-pixel text-lg">{pokemon.name}</h3>
@@ -540,6 +533,7 @@ const Battle = () => {
             onChangePokemon={changePokemon}
             onFlee={flee}
             isPlayerTurn={isPlayerTurn}
+            isAttacking={isAttacking}
             playerRoster={playerRoster}
             inventory={items}
           />

@@ -7,15 +7,17 @@
 import React, { useState } from "react";
 import { useItems, useCurrency, useRoster } from "../context/context";
 import { toast } from "react-toastify";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Bag = ({ onClose }) => {
   // State management for component
   const { items, useItem: applyItem } = useItems();
   const { currency } = useCurrency();
-  const { rosterPokemon } = useRoster();
+  const { rosterPokemon, resetPlayerData } = useRoster();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [showPokemonSelect, setShowPokemonSelect] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedPokemon, setSelectedPokemon] = useState(null);
 
   // Extract all unique categories from items
   const categories = [
@@ -287,6 +289,35 @@ const Bag = ({ onClose }) => {
           </div>
         </div>
       )}
+
+      {/* Developer Tools Section (for testing/debugging) */}
+      <div className="mt-5 border-t border-gray-300 pt-3">
+        <details className="text-xs">
+          <summary className="font-pixel text-gray-500 cursor-pointer hover:text-gray-700">
+            Developer Tools
+          </summary>
+          <div className="mt-2">
+            <button
+              onClick={() => {
+                if (
+                  window.confirm(
+                    "Reset all player data? This cannot be undone!"
+                  )
+                ) {
+                  resetPlayerData();
+                }
+              }}
+              className="bg-red-500 hover:bg-red-600 text-white font-pixel text-xs px-3 py-1 rounded"
+            >
+              Reset Player Data
+            </button>
+            <p className="text-gray-500 mt-1 text-xs">
+              Warning: This will reset all game progress, including Pokémon,
+              items, and currency.
+            </p>
+          </div>
+        </details>
+      </div>
     </div>
   );
 };

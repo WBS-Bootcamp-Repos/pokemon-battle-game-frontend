@@ -5,11 +5,11 @@
  * and provides access to the bag and item shop.
  */
 import { useNavigate } from "react-router";
-import { useRoster, useCurrency } from "../context/context";
+import { useRoster, useCurrency, usePlayerName } from "../context/context";
 import { toast } from "react-toastify";
 import ItemShop from "../components/ItemShop";
 import Bag from "../components/Bag";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 /**
  * Returns appropriate CSS class for a Pokemon type
@@ -485,14 +485,121 @@ function generateAdventureBattles(adventureId) {
 }
 
 /**
+ * PlayerNameForm Component
+ * Allows new players to input their name and displays welcome information
+ *
+ * @param {Function} onSubmit - Function called when form is submitted
+ */
+const PlayerNameForm = ({ onSubmit }) => {
+  const [name, setName] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (name.trim()) {
+      setIsSubmitting(true);
+      onSubmit(name);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+      <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+        <h2 className="text-2xl font-bold font-pixel mb-4 text-center">
+          WELCOME TRAINER!
+        </h2>
+
+        <div className="mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <p className="font-pixel text-sm mb-2">
+            Before you begin your Pokémon adventure, please tell us your name!
+          </p>
+          <p className="font-pixel text-sm">
+            As a new trainer, you'll receive:
+          </p>
+          <ul className="list-disc list-inside font-pixel text-sm mt-2 space-y-1">
+            <li>3 Potions</li>
+            <li>1 Super Potion</li>
+            <li>1 Revive</li>
+            <li>20 Rare Candies</li>
+            <li>100 ¥ starting money</li>
+          </ul>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label
+              htmlFor="playerName"
+              className="block font-pixel text-sm mb-2"
+            >
+              Your Name:
+            </label>
+            <input
+              type="text"
+              id="playerName"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md font-pixel text-black bg-white"
+              placeholder="Enter your name"
+              maxLength={12}
+              required
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={!name.trim() || isSubmitting}
+            className={`w-full py-2 px-4 rounded-md font-pixel text-white ${
+              !name.trim() || isSubmitting
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-black hover:bg-gray-800"
+            }`}
+          >
+            {isSubmitting ? "STARTING ADVENTURE..." : "START MY ADVENTURE!"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+/**
  * Main Adventures Component
  * Displays available adventures or a prompt to add Pokemon
  */
 const Adventures = () => {
   const { rosterPokemon = [] } = useRoster() || {};
   const { currency = 0 } = useCurrency() || {};
+  const { playerName, updatePlayerName } = usePlayerName() || {};
   const navigate = useNavigate();
   const [showBag, setShowBag] = useState(false);
+  const [showNameForm, setShowNameForm] = useState(false);
+
+  // Check if player name needs to be set
+  useEffect(() => {
+    if (!playerName) {
+      setShowNameForm(true);
+    }
+  }, [playerName]);
+
+  // Handle player name submission
+  const handleNameSubmit = (name) => {
+    if (updatePlayerName(name)) {
+      setShowNameForm(false);
+      toast.success(`Welcome to the world of Pokémon, ${name}!`, {
+        icon: "✨",
+        autoClose: 5000,
+      });
+
+      // Show notification about starting items
+      setTimeout(() => {
+        toast.info("Check your bag to see your starting items!", {
+          icon: "🎒",
+          autoClose: 5000,
+        });
+      }, 1500);
+    }
+  };
 
   // If no Pokemon in roster, show prompt to add Pokemon
   if (!rosterPokemon || rosterPokemon.length === 0) {
@@ -528,7 +635,16 @@ const Adventures = () => {
     <div className="min-h-screen bg-gray-100 p-4">
       <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold font-pixel">POKéMON ADVENTURES</h2>
+          <div>
+            <h2 className="text-2xl font-bold font-pixel">
+              POKéMON ADVENTURES
+            </h2>
+            {playerName && (
+              <p className="font-pixel text-sm text-gray-600">
+                Trainer: {playerName}
+              </p>
+            )}
+          </div>
           <div className="flex items-center gap-4">
             <button
               onClick={() => setShowBag(true)}
@@ -554,6 +670,9 @@ const Adventures = () => {
             </div>
           </div>
         )}
+
+        {/* Player Name Form */}
+        {showNameForm && <PlayerNameForm onSubmit={handleNameSubmit} />}
 
         {/* Adventure list */}
         <div className="mt-6">

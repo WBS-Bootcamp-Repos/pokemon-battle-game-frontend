@@ -27,6 +27,10 @@ import {
   calculateCurrency,
   generateDefaultMove,
 } from "../utils/battleUtils";
+import {
+  VictoryScreen,
+  DefeatScreen,
+} from "../components/battle/BattleResults";
 
 /**
  * Generates an enemy Pokemon with appropriate stats for the current adventure
@@ -48,11 +52,41 @@ const generateEnemyPokemon = (
     battleIndex = Number(battleIndex) || 0;
     maxBattles = Number(maxBattles) || 10;
 
-    // Calculate level and if this is a boss battle
-    // Slightly reduced level progression to help player keep up
-    const level = Math.min(5 + Math.floor(battleIndex * 1.3), 25);
+    // Adventure difficulty tiers - used to scale level progression
+    const difficultyTiers = {
+      random: { baseLevel: 1, increment: 1.0, maxLevel: 15, bossBonus: 5 }, // Beginner adventure
+      plant: { baseLevel: 10, increment: 1.5, maxLevel: 30, bossBonus: 7 }, // Easy difficulty
+      "psychic-ghost": {
+        baseLevel: 20,
+        increment: 2.0,
+        maxLevel: 40,
+        bossBonus: 8,
+      }, // Medium difficulty
+      legendary: { baseLevel: 30, increment: 2.5, maxLevel: 50, bossBonus: 10 }, // Hard difficulty
+      cave: { baseLevel: 15, increment: 1.8, maxLevel: 35, bossBonus: 8 }, // Added cave adventure
+      safari: { baseLevel: 25, increment: 2.2, maxLevel: 45, bossBonus: 9 }, // Added safari adventure
+    };
+
+    // Get difficulty settings for this adventure type, default to random if not found
+    const difficulty =
+      difficultyTiers[adventureType] || difficultyTiers["random"];
+
+    // Calculate level with better scaling based on adventure difficulty
+    // Early battles are easier, progression becomes steeper as you advance
+    const progressionFactor = (battleIndex / (maxBattles - 1)) * 0.8 + 0.2; // 0.2 to 1.0 scale factor
+    const calculatedLevel = Math.floor(
+      difficulty.baseLevel +
+        battleIndex * difficulty.increment * progressionFactor
+    );
+
+    // Apply level cap and determine if this is a boss battle
     const isBoss = battleIndex === maxBattles - 1;
-    const multiplier = isBoss ? 1.8 : 1; // Slightly reduced boss multiplier
+    const level = isBoss
+      ? Math.min(calculatedLevel + difficulty.bossBonus, difficulty.maxLevel)
+      : Math.min(calculatedLevel, difficulty.maxLevel - difficulty.bossBonus);
+
+    // Boss multiplier for stats - makes bosses significantly stronger
+    const multiplier = isBoss ? 1.5 : 1;
 
     // Default values
     let type = "normal";
@@ -87,7 +121,7 @@ const generateEnemyPokemon = (
     }
 
     // Calculate HP - now more balanced but still challenging
-    const baseHp = 45 + level * 2;
+    const baseHp = 40 + level * 3;
     const maxHp = Math.floor(baseHp * multiplier);
 
     // Create enemy Pokemon with better balanced stats
@@ -100,16 +134,16 @@ const generateEnemyPokemon = (
       maxHp: maxHp,
       stats: {
         // More balanced stats that scale with level but don't get overwhelming
-        attack: Math.floor((8 + level * 0.6) * multiplier),
-        defense: Math.floor((7 + level * 0.4) * multiplier),
-        speed: Math.floor((7 + level * 0.3) * multiplier),
         hp: maxHp,
+        attack: Math.floor((7 + level * 1.2) * multiplier),
+        defense: Math.floor((6 + level * 0.8) * multiplier),
+        speed: Math.floor((6 + level * 0.7) * multiplier),
       },
       moves: [
         {
           name: `${type.charAt(0).toUpperCase() + type.slice(1)} Attack`,
           type: type,
-          power: 40 + level * 0.5 * multiplier,
+          power: Math.floor((35 + level * 0.8) * multiplier),
         },
       ],
       isBoss: isBoss,
@@ -256,6 +290,16 @@ export const BattleProvider = ({ children }) => {
     if (!pokemon) {
       console.error("Cannot select Pokémon: No Pokémon provided");
       return;
+    }
+
+    // Ensure proper capitalization of Pokémon name
+    if (pokemon.name) {
+      pokemon = {
+        ...pokemon,
+        name:
+          pokemon.name.charAt(0).toUpperCase() +
+          pokemon.name.slice(1).toLowerCase(),
+      };
     }
 
     dispatch({
@@ -492,6 +536,64 @@ export const BattleProvider = ({ children }) => {
     dispatch({ type: BATTLE_ACTIONS.BATTLE_END });
   }, [state.playerPokemon, updatePokemonStats]);
 
+  /**
+   * Handles battle completion and victory screen
+   * @param {boolean} playerWon - Whether the player won the battle
+   */
+  const finishBattle = (playerWon = true) => {
+    dispatch({ type: BATTLE_ACTIONS.FINISH_BATTLE, payload: { playerWon } });
+
+    // If player won, show victory screen
+    if (playerWon) {
+      setShowVictory(true);
+    } else {
+      setShowDefeat(true);
+    }
+  };
+
+  /**
+   * Renders battle results screens (victory or defeat)
+   */
+  const renderBattleResults = () => {
+    if (showVictory) {
+      return (
+        <VictoryScreen
+          pokemon={activePokemon}
+          enemy={enemy}
+          xpGained={xpReward}
+          currencyGained={currencyReward}
+          isBossBattle={enemy?.isBoss}
+          currentBattle={battleIndex}
+          maxBattles={totalBattles}
+          adventureType={adventureType}
+          onNextBattle={() => {
+            setShowVictory(false);
+            nextBattle();
+          }}
+          onReturn={() => {
+            setShowVictory(false);
+            onComplete(true);
+          }}
+        />
+      );
+    } else if (showDefeat) {
+      return (
+        <DefeatScreen
+          onRetry={() => {
+            setShowDefeat(false);
+            restartBattle();
+          }}
+          onQuit={() => {
+            setShowDefeat(false);
+            onComplete(false);
+          }}
+        />
+      );
+    }
+
+    return null;
+  };
+
   // Exposed context value
   const contextValue = {
     ...state,
@@ -502,6 +604,8 @@ export const BattleProvider = ({ children }) => {
     changePokemon,
     flee,
     endBattle,
+    finishBattle,
+    renderBattleResults,
   };
 
   return (

@@ -1,6 +1,6 @@
 /**
  * Roster Utility Functions
- * 
+ *
  * Provides functions for managing the player's Pokemon roster including:
  * - Adding Pokemon with proper initialization of stats
  * - Removing Pokemon from the roster
@@ -11,7 +11,7 @@ import { toast } from "react-toastify";
 /**
  * Determines an appropriate attack name for a Pokemon based on its type
  * Falls back to "Tackle" if type information is missing
- * 
+ *
  * @param {Object} pokemon - Pokemon data object from API or storage
  * @returns {string} Appropriate attack name for the Pokemon's type
  */
@@ -55,7 +55,7 @@ function getPokemonAttackName(pokemon) {
 /**
  * Adds a Pokemon to the player's roster with proper stat initialization
  * Validates roster size limits and prevents duplicates
- * 
+ *
  * @param {Object} pokemon - Pokemon data to add to roster
  * @param {Function} setRosterPokemon - State setter function to update roster
  * @returns {boolean} Whether the addition was successful
@@ -122,7 +122,7 @@ export const addToRoster = (pokemon, setRosterPokemon) => {
 
 /**
  * Removes a Pokemon from the player's roster
- * 
+ *
  * @param {string|number} pokemonId - ID of the Pokemon to remove
  * @param {Function} setRosterPokemon - State setter function to update roster
  */
@@ -139,6 +139,6 @@ export const removeFromRoster = (pokemonId, setRosterPokemon) => {
     );
     deleted();
   } catch (error) {
-    console.error(error);
+    // Remove this console.error
   }
 };

@@ -53,6 +53,7 @@ const BattleControls = ({
   onChangePokemon,
   onFlee,
   isPlayerTurn,
+  isAttacking,
   playerRoster,
   inventory,
 }) => {
@@ -132,40 +133,48 @@ const BattleControls = ({
         <div className="grid grid-cols-2 gap-2">
           <button
             className={`font-pixel bg-[#383030] text-white py-2 px-4 rounded border-2 border-[#202020] shadow-inner hover:brightness-110 ${
-              !isPlayerTurn || !canFight ? "opacity-50 cursor-not-allowed" : ""
+              !isPlayerTurn || !canFight || isAttacking
+                ? "opacity-50 cursor-not-allowed"
+                : ""
             }`}
             onClick={handleAttack}
-            disabled={!isPlayerTurn || !canFight}
+            disabled={!isPlayerTurn || !canFight || isAttacking}
           >
             ATTACK
           </button>
           <button
             className={`font-pixel bg-[#383030] text-white py-2 px-4 rounded border-2 border-[#202020] shadow-inner hover:brightness-110 ${
-              !isPlayerTurn ? "opacity-50 cursor-not-allowed" : ""
+              !isPlayerTurn || isAttacking
+                ? "opacity-50 cursor-not-allowed"
+                : ""
             }`}
             onClick={() => setShowItems(true)}
-            disabled={!isPlayerTurn}
+            disabled={!isPlayerTurn || isAttacking}
           >
             ITEM
           </button>
           <button
             className={`font-pixel bg-[#383030] text-white py-2 px-4 rounded border-2 border-[#202020] shadow-inner hover:brightness-110 ${
-              !isPlayerTurn ? "opacity-50 cursor-not-allowed" : ""
+              !isPlayerTurn || isAttacking
+                ? "opacity-50 cursor-not-allowed"
+                : ""
             }`}
             onClick={() => setShowPokemon(true)}
-            disabled={!isPlayerTurn}
+            disabled={!isPlayerTurn || isAttacking}
           >
             POKÉMON
           </button>
           <button
             className={`font-pixel bg-[#383030] text-white py-2 px-4 rounded border-2 border-[#202020] shadow-inner hover:brightness-110 ${
-              !isPlayerTurn ? "opacity-50 cursor-not-allowed" : ""
+              !isPlayerTurn || isAttacking
+                ? "opacity-50 cursor-not-allowed"
+                : ""
             }`}
             onClick={() => {
               onFlee();
               resetMenus();
             }}
-            disabled={!isPlayerTurn}
+            disabled={!isPlayerTurn || isAttacking}
           >
             RUN
           </button>
