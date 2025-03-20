@@ -182,7 +182,6 @@ export const extractPokemonId = (url) => {
 
     return null;
   } catch (error) {
-    console.error("Error extracting Pokémon ID:", error);
     return null;
   }
 };
@@ -217,7 +216,6 @@ export const normalizePokemonName = (name) => {
 
     return normalizedName;
   } catch (error) {
-    console.error("Error normalizing Pokémon name:", error);
     return "missingno";
   }
 };
@@ -231,7 +229,6 @@ export const normalizePokemonName = (name) => {
 export const getPokemonSpriteUrl = (pokemon, isEnemy = false) => {
   try {
     if (!pokemon) {
-      console.warn("No Pokémon provided to getPokemonSpriteUrl");
       return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png";
     }
 
@@ -251,7 +248,6 @@ export const getPokemonSpriteUrl = (pokemon, isEnemy = false) => {
     const normalizedName = normalizePokemonName(pokemon.name);
     return `https://img.pokemondb.net/sprites/home/normal/${normalizedName}.png`;
   } catch (error) {
-    console.error("Error getting Pokémon sprite URL:", error, pokemon);
     return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png";
   }
 };
@@ -265,11 +261,6 @@ export const getPokemonSpriteUrl = (pokemon, isEnemy = false) => {
  */
 export const handleSpriteError = (event, isEnemy, pokemon) => {
   try {
-    console.warn(
-      `Sprite loading error for ${pokemon?.name || "unknown Pokémon"}:`,
-      event
-    );
-
     // If the current URL is from pokemondb, try pokeapi
     if (event.target.src.includes("pokemondb.net")) {
       const id = extractPokemonId(pokemon.url) || "0";
@@ -285,7 +276,6 @@ export const handleSpriteError = (event, isEnemy, pokemon) => {
     // Last resort fallback
     return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png";
   } catch (error) {
-    console.error("Error handling sprite failure:", error);
     return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png";
   }
 };
@@ -334,7 +324,7 @@ const determinePokemonId = (pokemon) => {
 
     // If we found an ID for a boss, log it
     if (pokemonId && pokemon.name.startsWith("Boss ")) {
-      console.log(`Found ID ${pokemonId} for boss Pokemon: ${pokemon.name}`);
+      console.log(`Resolved Boss ${nameToCheck} to ID: ${pokemonId}`);
     }
 
     // If not in our map, try to extract ID from name if it contains numbers
@@ -386,13 +376,8 @@ export const getFrontSprite = (pokemon) => {
     }
 
     // Fall back to Ditto as a last resort
-    console.warn(
-      `Could not determine ID for ${pokemon.name}, using fallback sprite`
-    );
     return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/132.png";
   } catch (error) {
-    console.error("Error getting front sprite:", error);
-    // Fall back to Ditto as a last resort
     return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/132.png";
   }
 };
@@ -418,13 +403,8 @@ export const getBackSprite = (pokemon) => {
     }
 
     // Fall back to Ditto as a last resort
-    console.warn(
-      `Could not determine ID for ${pokemon.name}, using fallback sprite`
-    );
     return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/132.png";
   } catch (error) {
-    console.error("Error getting back sprite:", error);
-    // Fall back to Ditto as a last resort
     return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/132.png";
   }
 };

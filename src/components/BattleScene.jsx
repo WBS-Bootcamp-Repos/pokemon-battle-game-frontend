@@ -43,8 +43,14 @@ const BattleScene = ({
   const playerFainted = playerPokemon && playerPokemon.currentHp <= 0;
   const enemyFainted = enemyPokemon && enemyPokemon.currentHp <= 0;
 
-  // Get current move type from battle state for attack animations
-  const currentMoveType = battleState?.lastMove?.type || "normal";
+  // Get attacker and move type for animations
+  const getPlayerAttackType = () => {
+    return playerPokemon ? getPokemonType(playerPokemon) : "normal";
+  };
+
+  const getEnemyAttackType = () => {
+    return enemyPokemon ? getPokemonType(enemyPokemon) : "normal";
+  };
 
   // New state variables for attack animations and hit detection
   const animatePlayerAttack = battleState === "attacking";
@@ -71,14 +77,14 @@ const BattleScene = ({
           style={{ zIndex: 2 }}
         ></div>
 
-        {/* Enemy Pokémon info panel - TOP LEFT (unchanged) */}
+        {/* Enemy Pokémon info panel - TOP LEFT - with increased width */}
         {enemyPokemon && (
           <div
             className="absolute top-3 left-3 bg-[#f0f0f0] p-2 rounded-lg border-4 border-[#383030] shadow-md"
-            style={{ zIndex: 10, width: "200px" }}
+            style={{ zIndex: 10, width: "240px" }}
           >
             <div className="flex justify-between items-center mb-1">
-              <h3 className="font-pixel text-lg text-[#383030] truncate max-w-[120px]">
+              <h3 className="font-pixel text-lg text-[#383030] truncate max-w-[160px]">
                 {enemyPokemon.name || "Enemy"}
               </h3>
               <span className="font-pixel text-sm bg-[#383030] text-white px-2 py-0.5 rounded-md whitespace-nowrap ml-1">
@@ -112,14 +118,14 @@ const BattleScene = ({
           </div>
         )}
 
-        {/* Player Pokémon info panel - BOTTOM RIGHT (unchanged) */}
+        {/* Player Pokémon info panel - BOTTOM RIGHT - with increased width */}
         {playerPokemon && (
           <div
             className="absolute bottom-3 right-3 bg-[#f0f0f0] p-2 rounded-lg border-4 border-[#383030] shadow-md"
-            style={{ zIndex: 10, width: "200px" }}
+            style={{ zIndex: 10, width: "240px" }}
           >
             <div className="flex justify-between items-center mb-1">
-              <h3 className="font-pixel text-lg text-[#383030] truncate max-w-[120px]">
+              <h3 className="font-pixel text-lg text-[#383030] truncate max-w-[160px]">
                 {playerPokemon.name || "Your Pokémon"}
               </h3>
               <span className="font-pixel text-sm bg-[#383030] text-white px-2 py-0.5 rounded-md whitespace-nowrap ml-1">
@@ -177,7 +183,7 @@ const BattleScene = ({
 
         {/* Battle content - Pokemon placement - adjusted positions without platforms */}
         <div className="relative h-full flex justify-between items-end pb-[15%]">
-          {/* Enemy Pokemon - Improved positioning */}
+          {/* Enemy Pokemon - Positioned at bottom-right of battle area */}
           <div
             className="absolute bottom-[35%] right-[20%] transform scale-[1.8]"
             style={{ zIndex: 4 }}
@@ -192,7 +198,7 @@ const BattleScene = ({
             )}
           </div>
 
-          {/* Player Pokemon - Improved positioning */}
+          {/* Player Pokemon - Positioned at bottom-left of battle area */}
           <div
             className="absolute bottom-[18%] left-[20%] transform scale-[1.8]"
             style={{ zIndex: 4 }}
@@ -212,12 +218,12 @@ const BattleScene = ({
         <AttackAnimation
           isActive={animatePlayerAttack}
           isEnemy={false}
-          type={currentMoveType}
+          type={getPlayerAttackType()}
         />
         <AttackAnimation
           isActive={animateEnemyAttack}
           isEnemy={true}
-          type={currentMoveType}
+          type={getEnemyAttackType()}
         />
 
         {/* Item use animation */}

@@ -52,7 +52,7 @@ const AttackAnimation = ({ isActive, isEnemy, type = "normal" }) => {
   // Get type-specific color
   const typeColor = getTypeColor(type);
 
-  // Secondary color for glow effect - lighter version of main color
+  // Calculate a lighter version of the type color for the glow effect
   const glowColor = typeColor.replace(
     /rgba?\((\d+), (\d+), (\d+)(?:, [\d.]+)?\)/,
     (match, r, g, b) =>
@@ -66,22 +66,22 @@ const AttackAnimation = ({ isActive, isEnemy, type = "normal" }) => {
   const startPosition = isEnemy
     ? {
         left: "65%", // Enemy position (right side)
-        top: "35%",
+        top: "40%", // Adjusted lower to match Pokemon's center
       }
     : {
         left: "25%", // Player position (left side)
-        top: "47%",
+        top: "52%", // Adjusted lower to match Pokemon's center
       };
 
   // Target positions adjusted to precisely hit opponent
   const endPosition = isEnemy
     ? {
         left: "25%", // Target player pokemon position
-        top: "47%",
+        top: "52%", // Adjusted to match target center
       }
     : {
         left: "65%", // Target enemy pokemon position
-        top: "35%",
+        top: "40%", // Adjusted to match target center
       };
 
   return (

@@ -107,10 +107,6 @@ const BattlePokemon = ({ pokemon, isEnemy, animateAttack, isHit }) => {
           transformOrigin: isEnemy ? "center" : "bottom center",
         }}
         onError={(e) => {
-          console.warn(
-            `Sprite loading error for ${pokemon?.name || "unknown"}`,
-            e
-          );
           setSpriteError(true);
         }}
       />
@@ -118,16 +114,16 @@ const BattlePokemon = ({ pokemon, isEnemy, animateAttack, isHit }) => {
       {/* Hit effect overlay - flashes when hit by attack */}
       {showHitEffect && (
         <motion.div
-          className="absolute inset-0"
+          className="absolute inset-0 rounded-full"
+          style={{
+            mixBlendMode: "overlay",
+            pointerEvents: "none",
+            backdropFilter: "brightness(1.5)",
+            WebkitBackdropFilter: "brightness(1.5)",
+          }}
           initial={{ opacity: 0 }}
           animate={{
             opacity: [0.7, 0, 0.5, 0],
-            backgroundColor: [
-              "rgba(255, 255, 255, 0.7)",
-              "rgba(255, 255, 255, 0)",
-              "rgba(255, 255, 255, 0.5)",
-              "rgba(255, 255, 255, 0)",
-            ],
           }}
           transition={{
             duration: 0.6,

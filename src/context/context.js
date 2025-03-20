@@ -23,4 +23,10 @@ const useCurrency = () => {
   return { currency, updateCurrency };
 };
 
-export { RosterContext, useRoster, useItems, useCurrency };
+// Player name hooks
+const usePlayerName = () => {
+  const { playerName, updatePlayerName } = useRoster();
+  return { playerName, updatePlayerName };
+};
+
+export { RosterContext, useRoster, useItems, useCurrency, usePlayerName };

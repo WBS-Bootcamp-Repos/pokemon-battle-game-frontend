@@ -1,6 +1,6 @@
 /**
  * RosterContext Provider
- * 
+ *
  * Manages the player's Pokemon roster, items, and currency with localStorage persistence.
  * Provides functions for Pokemon management (add, remove, level up), item usage,
  * and currency transactions.
@@ -15,6 +15,11 @@ const RosterContextProvider = ({ children }) => {
     // Ensure all roster Pokémon have level, xp, and currentHp properties
     return savedRoster.map((pokemon) => ({
       ...pokemon,
+      // Ensure proper capitalization of Pokémon names
+      name: pokemon.name
+        ? pokemon.name.charAt(0).toUpperCase() +
+          pokemon.name.slice(1).toLowerCase()
+        : pokemon.name,
       level: pokemon.level || 1,
       xp: pokemon.xp || 0,
       currentHp: pokemon.currentHp || pokemon.stats.hp,
@@ -34,10 +39,15 @@ const RosterContextProvider = ({ children }) => {
     return parseInt(localStorage.getItem("currency")) || 100;
   });
 
+  // Initialize player name from localStorage
+  const [playerName, setPlayerName] = useState(() => {
+    return localStorage.getItem("playerName") || "";
+  });
+
   // Initialize items with versioning for future updates
   const [items, setItems] = useState(() => {
     // Define the current version of the items structure
-    const CURRENT_ITEMS_VERSION = 2;
+    const CURRENT_ITEMS_VERSION = 3;
 
     // Get stored items and version
     const storedItems = JSON.parse(localStorage.getItem("items"));
@@ -170,7 +180,7 @@ const RosterContextProvider = ({ children }) => {
         description: "Raises a Pokémon's level by 1",
         effect: "levelup",
         amount: 1,
-        quantity: 0,
+        quantity: 20,
         price: 1000,
         icon: "🍬",
         category: "growth",
@@ -195,6 +205,13 @@ const RosterContextProvider = ({ children }) => {
         // Apply old quantities to new items structure
         const updatedItems = defaultItems.map((item) => {
           if (oldQuantities[item.id] !== undefined) {
+            // Special case for rare-candy in version 3 - ensure at least 20
+            if (item.id === "rare-candy" && storedVersion < 3) {
+              return {
+                ...item,
+                quantity: Math.max(oldQuantities[item.id], 20),
+              };
+            }
             return { ...item, quantity: oldQuantities[item.id] };
           }
           return item;
@@ -224,6 +241,13 @@ const RosterContextProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem("currency", currency);
   }, [currency]);
+
+  // Persist player name to localStorage when it changes
+  useEffect(() => {
+    if (playerName) {
+      localStorage.setItem("playerName", playerName);
+    }
+  }, [playerName]);
 
   // Persist items to localStorage when they change
   useEffect(() => {
@@ -283,7 +307,7 @@ const RosterContextProvider = ({ children }) => {
 
   /**
    * Extracts Pokemon type from various possible data structures
-   * @param {Object} pokemon - The Pokemon object 
+   * @param {Object} pokemon - The Pokemon object
    * @returns {string} Pokemon's primary type
    */
   function extractPokemonType(pokemon) {
@@ -308,7 +332,7 @@ const RosterContextProvider = ({ children }) => {
 
   /**
    * Adds a Pokemon to the player's roster with initialized stats
-   * @param {Object} pokemon - Pokemon to add 
+   * @param {Object} pokemon - Pokemon to add
    */
   const addPokemonToRoster = (pokemon) => {
     // Initialize default values if missing
@@ -320,6 +344,13 @@ const RosterContextProvider = ({ children }) => {
     }
     if (!pokemon.currentHp) {
       pokemon.currentHp = pokemon.stats.hp;
+    }
+
+    // Ensure Pokemon name is properly capitalized
+    if (pokemon.name) {
+      pokemon.name =
+        pokemon.name.charAt(0).toUpperCase() +
+        pokemon.name.slice(1).toLowerCase();
     }
 
     // Extract type and assign default attack if missing
@@ -444,6 +475,18 @@ const RosterContextProvider = ({ children }) => {
   };
 
   /**
+   * Updates the player's name
+   * @param {string} name - New player name
+   */
+  const updatePlayerName = (name) => {
+    if (name && name.trim()) {
+      setPlayerName(name.trim());
+      return true;
+    }
+    return false;
+  };
+
+  /**
    * Updates the quantity of an item
    * @param {string} itemId - ID of the item to update
    * @param {number} change - Amount to change quantity by (can be negative)
@@ -494,7 +537,10 @@ const RosterContextProvider = ({ children }) => {
 
     // Check if item can be used in the current context
     if (pokemon.currentHp <= 0 && item.effect !== "revive") {
-      return { success: false, message: `Cannot use ${item.name} on fainted Pokémon` };
+      return {
+        success: false,
+        message: `Cannot use ${item.name} on fainted Pokémon`,
+      };
     }
 
     // Apply item effect
@@ -588,25 +634,47 @@ const RosterContextProvider = ({ children }) => {
     return { success: false, message };
   };
 
+  /**
+   * Resets all player data (for testing or troubleshooting)
+   * Clears localStorage and refreshes the page
+   */
+  const resetPlayerData = () => {
+    // Clear all game-related localStorage
+    localStorage.removeItem("roster");
+    localStorage.removeItem("currency");
+    localStorage.removeItem("items");
+    localStorage.removeItem("items_version");
+
+    // Reload to initialize fresh data
+    window.location.reload();
+  };
+
+  // Exposed API through context
+  const contextValue = {
+    rosterPokemon,
+    items,
+    currency,
+    playerName,
+    setRosterPokemon,
+    setCurrency,
+    setItems,
+    setPlayerName,
+    addPokemonToRoster,
+    removePokemonFromRoster,
+    updatePokemonStats,
+    levelUpPokemon,
+    addExperience,
+    updateCurrency,
+    updatePlayerName,
+    updateItemQuantity,
+    buyItem,
+    useItem,
+    resetPlayerData,
+  };
+
   // Provide context value to consumers
   return (
-    <RosterContext.Provider
-      value={{
-        rosterPokemon,
-        setRosterPokemon,
-        addPokemonToRoster,
-        removePokemonFromRoster,
-        updatePokemonStats,
-        levelUpPokemon,
-        addExperience,
-        currency,
-        updateCurrency,
-        items,
-        updateItemQuantity,
-        buyItem,
-        useItem,
-      }}
-    >
+    <RosterContext.Provider value={contextValue}>
       {children}
     </RosterContext.Provider>
   );
