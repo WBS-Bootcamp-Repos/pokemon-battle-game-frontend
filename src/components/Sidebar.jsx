@@ -11,7 +11,7 @@ const Sidebar = () => {
           {[
             { path: "/", label: "All Pokémon" },
             { path: "/roster", label: "My Roster" },
-            { path: "/arena", label: "Arena" },
+            { path: "/adventures", label: "Adventures" },
             { path: "/leaderboard", label: "Leaderboard" },
           ].map((item) => (
             <NavLink
