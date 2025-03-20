@@ -1,6 +1,6 @@
 /**
  * BattleReducer - State management for Pokemon battles
- * 
+ *
  * This module handles battle state transitions, damage calculations,
  * and manages the flow of battle including attacks, item usage, and
  * Pokemon switching.
@@ -93,7 +93,7 @@ export const initialBattleState = {
 
 /**
  * Battle reducer - Manages state transitions during Pokemon battles
- * 
+ *
  * @param {Object} state - Current battle state
  * @param {Object} action - Action to process
  * @returns {Object} New battle state
@@ -179,10 +179,11 @@ export const battleReducer = (state, action) => {
 
     // Enemy initiates an attack
     case BATTLE_ACTIONS.ENEMY_ATTACK:
-      // Generate a move based on the enemy's type
+      // Generate a move based on the enemy's type with isEnemy flag set to true
       const enemyMove = generateDefaultMove(
         state.enemy.type || "normal",
-        state.enemy.level || 5
+        state.enemy.level || 5,
+        true
       );
 
       return {

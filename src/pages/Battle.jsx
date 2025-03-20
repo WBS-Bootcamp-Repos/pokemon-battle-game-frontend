@@ -1,6 +1,6 @@
 /**
  * Battle Page Component
- * 
+ *
  * Manages the Pokemon battle system, including starter selection,
  * battle flow, turn management, and adventure progression.
  * Uses BattleContext for state management and integrates with
@@ -15,197 +15,44 @@ import BattleScene from "../components/BattleScene";
 import BattleControls from "../components/BattleControls";
 import BattleLog from "../components/BattleLog";
 import { BATTLE_STATES } from "../context/BattleReducer";
+import { getPokemonSpriteUrl, getPokemonId } from "../utils/spriteUtils";
+import { getPokemonType } from "../utils/pokemonTypeUtils";
+import {
+  VictoryScreen,
+  DefeatScreen,
+} from "../components/battle/BattleResults";
+import { ChoosePokemonScreen } from "../components/battle/PokemonSelection";
 
 /**
- * Maps Pokemon names to their Pokedex IDs
- * Used for sprite URL generation when IDs aren't directly available
- * @param {string} name - Pokemon name to look up
- * @returns {number} Pokedex ID or 132 (Ditto) as fallback
+ * Gets the CSS class for styling a Pokemon type badge
+ * @param {Object} pokemon - The Pokemon object
+ * @returns {string} CSS class for the type badge
  */
-const getPokemonId = (name) => {
-  if (!name) return 132; // Default to Ditto (ID 132)
+const getTypeColor = (pokemon) => {
+  const type = getPokemonType(pokemon).toLowerCase();
 
-  // Map of common Pokemon names to their ID
-  const nameToId = {
-    bulbasaur: 1,
-    ivysaur: 2,
-    venusaur: 3,
-    charmander: 4,
-    charmeleon: 5,
-    charizard: 6,
-    squirtle: 7,
-    wartortle: 8,
-    blastoise: 9,
-    caterpie: 10,
-    metapod: 11,
-    butterfree: 12,
-    weedle: 13,
-    kakuna: 14,
-    beedrill: 15,
-    pidgey: 16,
-    pidgeotto: 17,
-    pidgeot: 18,
-    rattata: 19,
-    raticate: 20,
-    pikachu: 25,
-    raichu: 26,
-    sandshrew: 27,
-    sandslash: 28,
-    nidoran: 29,
-    nidorina: 30,
-    nidoqueen: 31,
-    nidorino: 33,
-    nidoking: 34,
-    clefairy: 35,
-    clefable: 36,
-    vulpix: 37,
-    ninetales: 38,
-    jigglypuff: 39,
-    wigglytuff: 40,
-    zubat: 41,
-    golbat: 42,
-    oddish: 43,
-    gloom: 44,
-    vileplume: 45,
-    paras: 46,
-    parasect: 47,
-    venonat: 48,
-    venomoth: 49,
-    diglett: 50,
-    dugtrio: 51,
-    meowth: 52,
-    persian: 53,
-    psyduck: 54,
-    golduck: 55,
-    mankey: 56,
-    primeape: 57,
-    growlithe: 58,
-    arcanine: 59,
-    poliwag: 60,
-    poliwhirl: 61,
-    poliwrath: 62,
-    abra: 63,
-    kadabra: 64,
-    alakazam: 65,
-    machop: 66,
-    machoke: 67,
-    machamp: 68,
-    bellsprout: 69,
-    weepinbell: 70,
-    victreebel: 71,
-    tentacool: 72,
-    tentacruel: 73,
-    geodude: 74,
-    graveler: 75,
-    golem: 76,
-    ponyta: 77,
-    rapidash: 78,
-    slowpoke: 79,
-    slowbro: 80,
-    magnemite: 81,
-    magneton: 82,
-    farfetchd: 83,
-    doduo: 84,
-    dodrio: 85,
-    seel: 86,
-    dewgong: 87,
-    grimer: 88,
-    muk: 89,
-    shellder: 90,
-    cloyster: 91,
-    gastly: 92,
-    haunter: 93,
-    gengar: 94,
-    onix: 95,
-    drowzee: 96,
-    hypno: 97,
-    krabby: 98,
-    kingler: 99,
-    voltorb: 100,
-    electrode: 101,
-    exeggcute: 102,
-    exeggutor: 103,
-    cubone: 104,
-    marowak: 105,
-    hitmonlee: 106,
-    hitmonchan: 107,
-    lickitung: 108,
-    koffing: 109,
-    weezing: 110,
-    rhyhorn: 111,
-    rhydon: 112,
-    chansey: 113,
-    tangela: 114,
-    kangaskhan: 115,
-    horsea: 116,
-    seadra: 117,
-    goldeen: 118,
-    seaking: 119,
-    staryu: 120,
-    starmie: 121,
-    mrmime: 122,
-    scyther: 123,
-    jynx: 124,
-    electabuzz: 125,
-    magmar: 126,
-    pinsir: 127,
-    tauros: 128,
-    magikarp: 129,
-    gyarados: 130,
-    lapras: 131,
-    ditto: 132,
-    eevee: 133,
-    vaporeon: 134,
-    jolteon: 135,
-    flareon: 136,
-    porygon: 137,
-    omanyte: 138,
-    omastar: 139,
-    kabuto: 140,
-    kabutops: 141,
-    aerodactyl: 142,
-    snorlax: 143,
-    articuno: 144,
-    zapdos: 145,
-    moltres: 146,
-    dratini: 147,
-    dragonair: 148,
-    dragonite: 149,
-    mewtwo: 150,
-    mew: 151,
+  const typeColors = {
+    normal: "bg-[#A8A878] text-white",
+    fire: "bg-[#F08030] text-white",
+    water: "bg-[#6890F0] text-white",
+    grass: "bg-[#78C850] text-white",
+    electric: "bg-[#F8D030] text-[#705848]",
+    ice: "bg-[#98D8D8] text-[#705848]",
+    fighting: "bg-[#C03028] text-white",
+    poison: "bg-[#A040A0] text-white",
+    ground: "bg-[#E0C068] text-[#705848]",
+    flying: "bg-[#A890F0] text-white",
+    psychic: "bg-[#F85888] text-white",
+    bug: "bg-[#A8B820] text-white",
+    rock: "bg-[#B8A038] text-white",
+    ghost: "bg-[#705898] text-white",
+    dragon: "bg-[#7038F8] text-white",
+    dark: "bg-[#705848] text-white",
+    steel: "bg-[#B8B8D0] text-[#705848]",
+    fairy: "bg-[#EE99AC] text-[#705848]",
   };
 
-  // Clean the name (remove spaces, dashes, convert to lowercase)
-  const cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, "");
-
-  // Return the ID if found, otherwise a fallback ID
-  return nameToId[cleanName] || 132;
-};
-
-/**
- * Generates a sprite URL for a Pokemon from various data formats
- * Uses multiple fallback methods to ensure a valid sprite
- * @param {Object} pokemon - Pokemon data object
- * @returns {string} URL to the Pokemon's sprite
- */
-const getPokemonSpriteUrl = (pokemon) => {
-  // Check for sprites object first
-  if (pokemon.sprites && pokemon.sprites.front_default) {
-    return pokemon.sprites.front_default;
-  }
-
-  // If we have a URL property (from API)
-  if (pokemon.url) {
-    // Extract ID from URL if possible
-    const matches = pokemon.url.match(/\/pokemon\/(\d+)/);
-    if (matches && matches[1]) {
-      return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${matches[1]}.png`;
-    }
-  }
-
-  // Try to get ID from name
-  const id = getPokemonId(pokemon.name);
-  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+  return typeColors[type] || "bg-[#A8A878] text-white"; // Default to normal type
 };
 
 /**
@@ -235,8 +82,97 @@ const Battle = () => {
     endBattle,
   } = useBattle();
 
+  // Get adventure progress from URL and session storage
+  const getAdventureProgress = () => {
+    const path = window.location.pathname;
+    const adventureIdMatch = path.match(/\/battle\/(.+)/);
+    const adventureId = adventureIdMatch ? adventureIdMatch[1] : null;
+
+    if (adventureId) {
+      const adventureData = JSON.parse(
+        sessionStorage.getItem(`adventure-${adventureId}`)
+      );
+
+      if (adventureData) {
+        return {
+          currentBattle: adventureData.currentBattle,
+          maxBattles: adventureData.battles.length,
+        };
+      }
+    }
+
+    // Default for standalone battles
+    return { currentBattle: 0, maxBattles: 1 };
+  };
+
   // Get battle status
   const isBattleActive = battleState !== BATTLE_STATES.IDLE;
+
+  // Check for victory or defeat
+  const isVictory = battleState === BATTLE_STATES.VICTORY;
+  const isDefeat = battleState === BATTLE_STATES.DEFEAT;
+
+  // Reward calculation based on enemy level and type
+  const calculateRewards = () => {
+    if (!enemy) return { xp: 0, currency: 0 };
+
+    // Base rewards scaled by enemy level
+    const baseXp = enemy.level * 10;
+    const baseCurrency = enemy.level * 5;
+
+    // Bonus for boss battles
+    const bossMultiplier = enemy.isBoss ? 2 : 1;
+
+    return {
+      xp: Math.floor(baseXp * bossMultiplier),
+      currency: Math.floor(baseCurrency * bossMultiplier),
+    };
+  };
+
+  const { xp: xpGained, currency: currencyGained } = calculateRewards();
+
+  // Handle victory continuation
+  const handleNextBattle = () => {
+    // Get adventure data from URL
+    const path = window.location.pathname;
+    const adventureIdMatch = path.match(/\/battle\/(.+)/);
+    const adventureId = adventureIdMatch ? adventureIdMatch[1] : null;
+
+    if (adventureId) {
+      // Update adventure progress in session storage
+      const adventureData = JSON.parse(
+        sessionStorage.getItem(`adventure-${adventureId}`)
+      );
+
+      if (adventureData) {
+        // Increment current battle and save
+        adventureData.currentBattle += 1;
+        sessionStorage.setItem(
+          `adventure-${adventureId}`,
+          JSON.stringify(adventureData)
+        );
+
+        // Refresh the page to load the next battle
+        window.location.reload();
+      }
+    } else {
+      // For standalone battles, just end the battle
+      endBattle();
+      navigate("/");
+    }
+  };
+
+  // Handle returning to map after battle
+  const handleReturnToMap = () => {
+    endBattle();
+    navigate("/");
+  };
+
+  // Handle retrying a battle after defeat
+  const handleRetryBattle = () => {
+    // Reset battle state and try again
+    window.location.reload();
+  };
 
   /**
    * Initialize battle from URL parameters or adventure data
@@ -378,82 +314,13 @@ const Battle = () => {
 
       case BATTLE_STATES.VICTORY:
         toast.success("You won the battle!");
-
-        // If this is part of an adventure, advance to next battle
-        if (adventureId) {
-          try {
-            const adventureData = JSON.parse(
-              sessionStorage.getItem(`adventure-${adventureId}`)
-            );
-
-            if (adventureData) {
-              const { currentBattle, battles } = adventureData;
-
-              // Check if this is the last battle
-              if (currentBattle >= battles.length - 1) {
-                // Adventure complete
-                toast.success(
-                  `You've completed the ${adventureData.adventureName} adventure!`,
-                  {
-                    autoClose: 5000,
-                  }
-                );
-
-                // Clean up adventure data
-                sessionStorage.removeItem(`adventure-${adventureId}`);
-
-                // Delay to show victory state before redirecting
-                const victoryTimer = setTimeout(() => {
-                  endBattle();
-                  navigate("/adventures");
-                }, 3000);
-                return () => clearTimeout(victoryTimer);
-              } else {
-                // Move to next battle
-                adventureData.currentBattle = currentBattle + 1;
-                sessionStorage.setItem(
-                  `adventure-${adventureId}`,
-                  JSON.stringify(adventureData)
-                );
-
-                // Delay to show victory state before starting next battle
-                const victoryTimer = setTimeout(() => {
-                  endBattle();
-                  navigate(`/battle/${adventureId}`);
-                }, 3000);
-                return () => clearTimeout(victoryTimer);
-              }
-            }
-          } catch (error) {
-            console.error("Error processing adventure victory:", error);
-          }
-        } else {
-          // Normal single battle victory
-          const victoryTimer = setTimeout(() => {
-            endBattle();
-            navigate("/adventures");
-          }, 3000);
-          return () => clearTimeout(victoryTimer);
-        }
+        // Victory screen will now be shown via component - no automatic redirection
         break;
 
       case BATTLE_STATES.DEFEAT:
         toast.error("You lost the battle!");
-
-        // If this is part of an adventure, clean up the adventure
-        if (adventureId) {
-          sessionStorage.removeItem(`adventure-${adventureId}`);
-          toast.info(
-            "Adventure failed! Try again when your Pokémon are stronger."
-          );
-        }
-
-        // Delay to show defeat state before redirecting
-        const defeatTimer = setTimeout(() => {
-          endBattle();
-          navigate("/adventures");
-        }, 3000);
-        return () => clearTimeout(defeatTimer);
+        // Defeat screen will now be shown via component - no automatic redirection
+        break;
 
       case BATTLE_STATES.FLEEING:
         toast.info("You fled from battle!");
@@ -506,24 +373,30 @@ const Battle = () => {
             {/* Enemy Pokemon preview */}
             {enemy && (
               <div className="mb-4 p-3 bg-[#f0f0f0] border-4 border-[#383030] rounded-lg">
-                <p className="font-pixel">
-                  {enemy.isBoss ? `Boss ${enemy.name}` : `A wild ${enemy.name}`}{" "}
+                <p className="font-pixel text-center">
+                  {enemy.isBoss ? `${enemy.name}` : `A wild ${enemy.name}`}{" "}
                   appeared!
                 </p>
-                {enemy.sprites && (
-                  <div className="flex justify-center mt-2">
-                    <img
-                      src={enemy.sprites.front_default}
-                      alt={enemy.name}
-                      className="w-32 h-32 pixelated"
-                      onError={(e) => {
-                        e.target.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${getPokemonId(
-                          enemy.name
-                        )}.png`;
-                      }}
-                    />
-                  </div>
-                )}
+                <div className="flex flex-col items-center mt-2">
+                  <img
+                    src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${getPokemonId(
+                      enemy.name
+                    )}.png`}
+                    alt={enemy.name}
+                    className="w-32 h-32 pixelated"
+                    onError={(e) => {
+                      e.target.src =
+                        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png";
+                    }}
+                  />
+                  <span
+                    className={`font-pixel text-xs px-2 py-1 rounded capitalize mt-2 ${getTypeColor(
+                      enemy
+                    )}`}
+                  >
+                    {getPokemonType(enemy)}
+                  </span>
+                </div>
               </div>
             )}
 
@@ -547,21 +420,14 @@ const Battle = () => {
                   >
                     <div className="flex items-center">
                       <img
-                        src={getPokemonSpriteUrl(pokemon)}
+                        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${getPokemonId(
+                          pokemon.name
+                        )}.png`}
                         alt={pokemon.name}
-                        className="w-32 h-32 mr-3 pixelated"
+                        className="w-24 h-24 mr-3 pixelated"
                         onError={(e) => {
-                          // Fallback chain for sprite loading
-                          if (e.target.src.includes("front_default")) {
-                            e.target.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${getPokemonId(
-                              pokemon.name
-                            )}.png`;
-                          } else if (
-                            e.target.src.includes("sprites/pokemon/")
-                          ) {
-                            e.target.src =
-                              "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png";
-                          }
+                          e.target.src =
+                            "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png";
                         }}
                       />
                       <div>
@@ -569,6 +435,15 @@ const Battle = () => {
                         <p className="font-pixel text-sm">
                           Lv. {pokemon.level || 1}
                         </p>
+                        <div className="mt-1">
+                          <span
+                            className={`font-pixel text-xs px-2 py-1 rounded capitalize ${getTypeColor(
+                              pokemon
+                            )}`}
+                          >
+                            {getPokemonType(pokemon)}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
@@ -576,11 +451,6 @@ const Battle = () => {
                       <p className="font-pixel text-sm">
                         HP: {pokemon.currentHp}/{pokemon.stats?.hp || 100}
                       </p>
-                      {pokemon.type && (
-                        <span className="font-pixel text-xs bg-[#d0d0d0] px-2 py-1 rounded">
-                          {pokemon.type}
-                        </span>
-                      )}
                       {pokemon.currentHp <= 0 && (
                         <p className="font-pixel text-xs text-red-500 mt-1">
                           Fainted
@@ -609,11 +479,40 @@ const Battle = () => {
 
   // Render battle screen
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold font-pixel mb-6 text-center">
-          BATTLE!
-        </h2>
+    <div className="flex flex-col h-full gap-4">
+      {/* Choose starter dialog */}
+      {showRoster && (
+        <ChoosePokemonScreen
+          onSelectPokemon={(pokemon) => {
+            selectPokemon(pokemon);
+            setShowRoster(false);
+          }}
+          availablePokemon={playerRoster.filter((p) => p.currentHp > 0)}
+        />
+      )}
+
+      {/* Victory Screen */}
+      {isVictory && (
+        <VictoryScreen
+          pokemon={playerPokemon}
+          enemy={enemy}
+          xpGained={xpGained}
+          currencyGained={currencyGained}
+          isBossBattle={enemy?.isBoss}
+          currentBattle={getAdventureProgress().currentBattle}
+          maxBattles={getAdventureProgress().maxBattles}
+          onNextBattle={handleNextBattle}
+          onReturn={handleReturnToMap}
+        />
+      )}
+
+      {/* Defeat Screen */}
+      {isDefeat && (
+        <DefeatScreen onRetry={handleRetryBattle} onQuit={handleReturnToMap} />
+      )}
+
+      {/* Battle interface */}
+      <div className="p-4 bg-[#f0f0f0] rounded-lg shadow-md border-2 border-[#d0d0d0] relative overflow-hidden">
         <div className="grid grid-cols-1 gap-4">
           {/* Battle scene with Pokémon */}
           <BattleScene

@@ -1,6 +1,6 @@
 /**
  * Bag Component - Pokemon inventory management interface
- * 
+ *
  * Displays player's items, allows filtering by category, and handles using items on Pokemon.
  * Integrates with game context for item management, currency, and Pokemon roster.
  */
@@ -66,7 +66,12 @@ const Bag = ({ onClose }) => {
     }
 
     // Check if this is an item that can be used from the bag
-    if (item.effect === "levelup" || item.effect === "revive") {
+    if (
+      item.effect === "levelup" ||
+      item.effect === "revive" ||
+      item.effect === "heal" ||
+      item.effect === "fullheal"
+    ) {
       setSelectedItem(item);
       setShowPokemonSelect(true);
     } else if (!item.battleUsable) {
@@ -174,7 +179,10 @@ const Bag = ({ onClose }) => {
                 <span className="font-pixel text-sm font-bold mb-2">
                   x{item.quantity}
                 </span>
-                {(item.effect === "levelup" || item.effect === "revive") &&
+                {(item.effect === "levelup" ||
+                  item.effect === "revive" ||
+                  item.effect === "heal" ||
+                  item.effect === "fullheal") &&
                   item.quantity > 0 && (
                     <button
                       onClick={() => handleUseItem(item)}
