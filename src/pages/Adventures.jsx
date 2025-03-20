@@ -1,6 +1,6 @@
 /**
  * Adventures Page Component
- * 
+ *
  * Displays available adventures, allows starting new adventures,
  * and provides access to the bag and item shop.
  */
@@ -12,71 +12,146 @@ import Bag from "../components/Bag";
 import { useState } from "react";
 
 /**
+ * Returns appropriate CSS class for a Pokemon type
+ * @param {string} type - Pokemon type
+ * @returns {string} CSS class for the type badge
+ */
+const getTypeColor = (type) => {
+  const typeColors = {
+    normal: "bg-[#A8A878] text-white",
+    fire: "bg-[#F08030] text-white",
+    water: "bg-[#6890F0] text-white",
+    grass: "bg-[#78C850] text-white",
+    electric: "bg-[#F8D030] text-[#705848]",
+    ice: "bg-[#98D8D8] text-[#705848]",
+    fighting: "bg-[#C03028] text-white",
+    poison: "bg-[#A040A0] text-white",
+    ground: "bg-[#E0C068] text-[#705848]",
+    flying: "bg-[#A890F0] text-white",
+    psychic: "bg-[#F85888] text-white",
+    bug: "bg-[#A8B820] text-white",
+    rock: "bg-[#B8A038] text-white",
+    ghost: "bg-[#705898] text-white",
+    dragon: "bg-[#7038F8] text-white",
+    dark: "bg-[#705848] text-white",
+    steel: "bg-[#B8B8D0] text-[#705848]",
+    fairy: "bg-[#EE99AC] text-[#705848]",
+  };
+
+  return typeColors[type.toLowerCase()] || "bg-[#A8A878] text-white"; // Default to normal type
+};
+
+/**
  * Pokemon data organized by adventure type
  * Each pool contains Pokemon that will appear in that adventure
  */
 const POKEMON_POOLS = {
   forest: [
-    { id: 1, name: "Bulbasaur", type: "grass" },
-    { id: 2, name: "Ivysaur", type: "grass" },
-    { id: 3, name: "Venusaur", type: "grass" }, // Boss potential
+    // Bug types found in Viridian Forest
     { id: 10, name: "Caterpie", type: "bug" },
     { id: 11, name: "Metapod", type: "bug" },
     { id: 12, name: "Butterfree", type: "bug" }, // Boss potential
     { id: 13, name: "Weedle", type: "bug" },
     { id: 14, name: "Kakuna", type: "bug" },
     { id: 15, name: "Beedrill", type: "bug" }, // Boss potential
+    // Forest dwelling Pokemon
+    { id: 25, name: "Pikachu", type: "electric" }, // Classic Viridian Forest inhabitant
+    { id: 16, name: "Pidgey", type: "flying" },
+    { id: 17, name: "Pidgeotto", type: "flying" }, // Boss potential
     { id: 43, name: "Oddish", type: "grass" },
-    { id: 44, name: "Gloom", type: "grass" },
-    { id: 45, name: "Vileplume", type: "grass" }, // Boss potential
     { id: 69, name: "Bellsprout", type: "grass" },
-    { id: 70, name: "Weepinbell", type: "grass" },
-    { id: 71, name: "Victreebel", type: "grass" }, // Boss potential
     { id: 102, name: "Exeggcute", type: "grass" },
-    { id: 103, name: "Exeggutor", type: "grass" }, // Boss potential
+    // Rare forest Pokemon
+    { id: 123, name: "Scyther", type: "bug" }, // Rare boss potential
   ],
 
   rocket: [
+    // Common Team Rocket Pokemon
+    { id: 19, name: "Rattata", type: "normal" },
+    { id: 20, name: "Raticate", type: "normal" }, // Boss potential
     { id: 23, name: "Ekans", type: "poison" },
     { id: 24, name: "Arbok", type: "poison" }, // Boss potential
+    { id: 27, name: "Sandshrew", type: "ground" },
+    { id: 28, name: "Sandslash", type: "ground" }, // Boss potential
     { id: 41, name: "Zubat", type: "poison" },
     { id: 42, name: "Golbat", type: "poison" }, // Boss potential
-    { id: 63, name: "Abra", type: "psychic" },
-    { id: 64, name: "Kadabra", type: "psychic" },
-    { id: 65, name: "Alakazam", type: "psychic" }, // Boss potential
-    { id: 92, name: "Gastly", type: "ghost" },
-    { id: 93, name: "Haunter", type: "ghost" },
-    { id: 94, name: "Gengar", type: "ghost" }, // Boss potential
-    { id: 96, name: "Drowzee", type: "psychic" },
-    { id: 97, name: "Hypno", type: "psychic" }, // Boss potential
+    { id: 88, name: "Grimer", type: "poison" },
+    { id: 89, name: "Muk", type: "poison" }, // Boss potential
     { id: 109, name: "Koffing", type: "poison" },
     { id: 110, name: "Weezing", type: "poison" }, // Boss potential
-    { id: 122, name: "Mr. Mime", type: "psychic" }, // Boss potential
-    { id: 132, name: "Ditto", type: "normal" }, // Team Rocket uses this
-    { id: 150, name: "Mewtwo", type: "psychic" }, // Legendary boss
+    // Executive-level Pokemon
+    { id: 53, name: "Persian", type: "normal" }, // Giovanni's Persian
+    { id: 105, name: "Marowak", type: "ground" }, // Boss potential
+    { id: 115, name: "Kangaskhan", type: "normal" }, // Boss potential
+    // Legendary (very rare boss)
+    { id: 150, name: "Mewtwo", type: "psychic" }, // Ultimate boss (extremely rare)
   ],
 
   cave: [
-    { id: 27, name: "Sandshrew", type: "ground" },
-    { id: 28, name: "Sandslash", type: "ground" }, // Boss potential
-    { id: 50, name: "Diglett", type: "ground" },
-    { id: 51, name: "Dugtrio", type: "ground" }, // Boss potential
-    { id: 66, name: "Machop", type: "fighting" },
-    { id: 67, name: "Machoke", type: "fighting" },
-    { id: 68, name: "Machamp", type: "fighting" }, // Boss potential
+    // Common Mt. Moon inhabitants
+    { id: 41, name: "Zubat", type: "poison" },
+    { id: 42, name: "Golbat", type: "poison" },
     { id: 74, name: "Geodude", type: "rock" },
     { id: 75, name: "Graveler", type: "rock" },
-    { id: 76, name: "Golem", type: "rock" }, // Boss potential
-    { id: 95, name: "Onix", type: "rock" }, // Boss potential
-    { id: 104, name: "Cubone", type: "ground" },
-    { id: 105, name: "Marowak", type: "ground" }, // Boss potential
-    { id: 111, name: "Rhyhorn", type: "ground" },
-    { id: 112, name: "Rhydon", type: "ground" }, // Boss potential
-    { id: 142, name: "Aerodactyl", type: "rock" }, // Boss potential
-    { id: 143, name: "Snorlax", type: "normal" }, // Boss potential
+    { id: 76, name: "Golem", type: "rock" },
+
+    // Strong cave dwellers
+    { id: 95, name: "Onix", type: "rock" },
+    { id: 66, name: "Machop", type: "fighting" },
+    { id: 67, name: "Machoke", type: "fighting" },
+    { id: 68, name: "Machamp", type: "fighting" },
+
+    // Evolved powerful Pokemon
+    { id: 112, name: "Rhydon", type: "ground" },
+    { id: 142, name: "Aerodactyl", type: "rock" },
+    { id: 139, name: "Omastar", type: "rock" },
+    { id: 141, name: "Kabutops", type: "rock" },
+
+    // Legendary birds (rare encounters)
+    { id: 144, name: "Articuno", type: "ice" },
+    { id: 145, name: "Zapdos", type: "electric" },
+    { id: 146, name: "Moltres", type: "fire" },
+
+    // Legendary Pokemon (very rare)
+    { id: 150, name: "Mewtwo", type: "psychic" },
+    { id: 151, name: "Mew", type: "psychic" },
+
+    // Dragon types (powerful late-game Pokemon)
+    { id: 147, name: "Dratini", type: "dragon" },
+    { id: 148, name: "Dragonair", type: "dragon" },
+    { id: 149, name: "Dragonite", type: "dragon" },
   ],
 
-  // For safari, we'll use the full Gen 1 Pokédex in the Battle component
+  safari: [
+    // Common Safari Zone Pokemon
+    { id: 19, name: "Rattata", type: "normal" },
+    { id: 20, name: "Raticate", type: "normal" },
+    { id: 21, name: "Spearow", type: "flying" },
+    { id: 22, name: "Fearow", type: "flying" },
+    { id: 84, name: "Doduo", type: "normal" },
+    { id: 85, name: "Dodrio", type: "normal" },
+    // Rarer Safari Zone finds
+    { id: 111, name: "Rhyhorn", type: "ground" },
+    { id: 112, name: "Rhydon", type: "ground" }, // Boss potential
+    { id: 113, name: "Chansey", type: "normal" }, // Rare boss potential
+    { id: 114, name: "Tangela", type: "grass" },
+    { id: 115, name: "Kangaskhan", type: "normal" }, // Boss potential
+    { id: 123, name: "Scyther", type: "bug" }, // Boss potential
+    { id: 127, name: "Pinsir", type: "bug" }, // Boss potential
+    { id: 128, name: "Tauros", type: "normal" }, // Boss potential
+    { id: 131, name: "Lapras", type: "water" }, // Very rare, boss potential
+    { id: 143, name: "Snorlax", type: "normal" }, // Very rare, boss potential
+    // Water Pokemon for the fishing areas
+    { id: 118, name: "Goldeen", type: "water" },
+    { id: 119, name: "Seaking", type: "water" },
+    { id: 129, name: "Magikarp", type: "water" },
+    { id: 130, name: "Gyarados", type: "water" }, // Boss potential
+    { id: 54, name: "Psyduck", type: "water" },
+    { id: 55, name: "Golduck", type: "water" }, // Boss potential
+    { id: 60, name: "Poliwag", type: "water" },
+    { id: 61, name: "Poliwhirl", type: "water" },
+    { id: 62, name: "Poliwrath", type: "water" }, // Boss potential
+  ],
 };
 
 /**
@@ -84,29 +159,50 @@ const POKEMON_POOLS = {
  */
 const BOSS_POKEMON = {
   forest: [
-    { id: 3, name: "Venusaur", type: "grass" },
     { id: 12, name: "Butterfree", type: "bug" },
     { id: 15, name: "Beedrill", type: "bug" },
-    { id: 45, name: "Vileplume", type: "grass" },
-    { id: 71, name: "Victreebel", type: "grass" },
+    { id: 17, name: "Pidgeotto", type: "flying" },
+    { id: 18, name: "Pidgeot", type: "flying" }, // Rare boss
+    { id: 123, name: "Scyther", type: "bug" }, // Rare boss
   ],
   rocket: [
     { id: 24, name: "Arbok", type: "poison" },
-    { id: 65, name: "Alakazam", type: "psychic" },
-    { id: 94, name: "Gengar", type: "ghost" },
+    { id: 89, name: "Muk", type: "poison" },
     { id: 110, name: "Weezing", type: "poison" },
-    { id: 150, name: "Mewtwo", type: "psychic" }, // Rare chance
+    { id: 53, name: "Persian", type: "normal" }, // Giovanni's Persian
+    { id: 115, name: "Kangaskhan", type: "normal" }, // Rare boss
+    { id: 150, name: "Mewtwo", type: "psychic" }, // Very rare legendary boss
   ],
   cave: [
-    { id: 68, name: "Machamp", type: "fighting" },
+    // Strong evolved Pokemon bosses
     { id: 76, name: "Golem", type: "rock" },
     { id: 95, name: "Onix", type: "rock" },
+    { id: 68, name: "Machamp", type: "fighting" },
     { id: 112, name: "Rhydon", type: "ground" },
     { id: 142, name: "Aerodactyl", type: "rock" },
-    { id: 143, name: "Snorlax", type: "normal" }, // Rare boss
+
+    // Legendary bird bosses
+    { id: 144, name: "Articuno", type: "ice" },
+    { id: 145, name: "Zapdos", type: "electric" },
+    { id: 146, name: "Moltres", type: "fire" },
+
+    // Ultimate legendary bosses
+    { id: 149, name: "Dragonite", type: "dragon" },
+    { id: 150, name: "Mewtwo", type: "psychic" },
+    { id: 151, name: "Mew", type: "psychic" },
+  ],
+  safari: [
+    { id: 112, name: "Rhydon", type: "ground" },
+    { id: 113, name: "Chansey", type: "normal" },
+    { id: 115, name: "Kangaskhan", type: "normal" },
+    { id: 123, name: "Scyther", type: "bug" },
+    { id: 127, name: "Pinsir", type: "bug" },
+    { id: 128, name: "Tauros", type: "normal" },
+    { id: 130, name: "Gyarados", type: "water" },
+    { id: 131, name: "Lapras", type: "water" },
+    { id: 143, name: "Snorlax", type: "normal" },
   ],
 };
-
 /**
  * Available adventure definitions with metadata
  */
@@ -117,7 +213,10 @@ const adventures = [
     description: "A dense forest with bug and grass-type Pokémon",
     difficulty: "Easy",
     requiredLevel: 1,
-    representativePokemon: { id: 10, name: "Caterpie" },
+    representativePokemon:
+      BOSS_POKEMON.forest[
+        Math.floor(Math.random() * BOSS_POKEMON.forest.length)
+      ],
     type: "grass/bug",
     region: "Kanto",
     battles: 6,
@@ -129,7 +228,10 @@ const adventures = [
       "Infiltrate Team Rocket's base full of poison and psychic Pokémon",
     difficulty: "Medium",
     requiredLevel: 8,
-    representativePokemon: { id: 109, name: "Koffing" },
+    representativePokemon:
+      BOSS_POKEMON.rocket[
+        Math.floor(Math.random() * BOSS_POKEMON.rocket.length)
+      ],
     type: "poison/psychic",
     region: "Kanto",
     battles: 6,
@@ -140,7 +242,8 @@ const adventures = [
     description: "A challenging cave with rock and ground Pokémon",
     difficulty: "Hard",
     requiredLevel: 15,
-    representativePokemon: { id: 74, name: "Geodude" },
+    representativePokemon:
+      BOSS_POKEMON.cave[Math.floor(Math.random() * BOSS_POKEMON.cave.length)],
     type: "rock/ground",
     region: "Kanto",
     battles: 6,
@@ -151,7 +254,10 @@ const adventures = [
     description: "Encounter random Pokémon from all types",
     difficulty: "Random",
     requiredLevel: 5,
-    representativePokemon: { id: 133, name: "Eevee" },
+    representativePokemon:
+      BOSS_POKEMON.safari[
+        Math.floor(Math.random() * BOSS_POKEMON.safari.length)
+      ],
     type: "various",
     region: "Kanto",
     battles: 6,
@@ -160,7 +266,7 @@ const adventures = [
 
 /**
  * AdventureCard Component - Displays a single adventure option
- * 
+ *
  * @param {Object} adventure - Adventure data to display
  */
 const AdventureCard = ({ adventure }) => {
@@ -244,8 +350,15 @@ const AdventureCard = ({ adventure }) => {
               }}
             />
             <p className="mt-2 text-xs font-pixel text-gray-600">
-              Encounter {adventure.representativePokemon.name} and more!
+              Defeat Boss {adventure.representativePokemon.name} and more!
             </p>
+            <span
+              className={`inline-block mt-1 px-2 py-0.5 rounded text-xs font-pixel ${getTypeColor(
+                adventure.representativePokemon.type
+              )} capitalize`}
+            >
+              {adventure.representativePokemon.type} type
+            </span>
           </div>
         </div>
 
@@ -312,43 +425,12 @@ const AdventureCard = ({ adventure }) => {
 };
 
 /**
- * Generates a sequence of battles for an adventure
- * 
- * @param {string} adventureId - ID of the adventure
- * @returns {Array} Array of battle data objects
+ * Generates adventure battles with enemies based on adventure type
+ * @param {string} adventureId - ID of the adventure to generate for
+ * @returns {Array} Array of battle data
  */
 function generateAdventureBattles(adventureId) {
   const battles = [];
-  const isSafari = adventureId === "safari";
-
-  // If it's safari, generate 6 completely random Pokémon from Gen 1 (IDs 1-151)
-  if (isSafari) {
-    for (let i = 0; i < 5; i++) {
-      // Random Pokémon ID between 1 and 151
-      const randomId = Math.floor(Math.random() * 151) + 1;
-      battles.push({
-        enemyId: `safari-pokemon-${randomId}`,
-        enemyName: `Wild Pokémon #${randomId}`, // We'll resolve the name in the battle component
-        enemyLevel: Math.floor(Math.random() * 15) + 10, // Level 10-25
-        enemyType: "normal", // Will be set properly in battle
-        isBoss: false,
-      });
-    }
-
-    // Make the last battle a boss with slightly higher level
-    const bossId = Math.floor(Math.random() * 151) + 1;
-    battles.push({
-      enemyId: `safari-boss-${bossId}`,
-      enemyName: `Safari Boss #${bossId}`,
-      enemyLevel: Math.floor(Math.random() * 10) + 25, // Level 25-35
-      enemyType: "normal", // Will be set properly in battle
-      isBoss: true,
-    });
-
-    return battles;
-  }
-
-  // For other adventures, select from their Pokémon pools
   const pokemonPool = POKEMON_POOLS[adventureId] || [];
   const bossPokemonPool = BOSS_POKEMON[adventureId] || [];
 

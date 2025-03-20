@@ -1,178 +1,23 @@
 /**
  * BattleScene Component
- * 
+ *
  * Renders the battle arena with Pokemon sprites, health bars, platforms,
  * and battle animations. Provides visual representation of the battle state
  * including attack animations and item use effects.
  */
 import React from "react";
 import { motion } from "framer-motion";
-import { BattlePokemon, AttackAnimation } from "./BattleComponents";
-
-/**
- * Determines a Pokemon's type based on available data
- * Uses multiple fallback strategies to ensure a type is always returned
- * 
- * @param {Object} pokemon - The Pokemon object
- * @returns {string} The Pokemon's type (lowercase)
- */
-const getPokemonType = (pokemon) => {
-  if (!pokemon) return "normal";
-
-  // Handle special cases for starters and other common Pokémon
-  if (pokemon.name) {
-    const name = pokemon.name.toLowerCase();
-    // Force type for well-known Pokémon
-    if (name === "venusaur" || name === "bulbasaur" || name === "ivysaur") {
-      return "grass";
-    }
-    if (
-      name === "charizard" ||
-      name === "charmander" ||
-      name === "charmeleon"
-    ) {
-      return "fire";
-    }
-    if (name === "blastoise" || name === "squirtle" || name === "wartortle") {
-      return "water";
-    }
-    if (name === "pikachu" || name === "raichu") {
-      return "electric";
-    }
-    if (name === "gengar" || name === "gastly" || name === "haunter") {
-      return "ghost";
-    }
-    if (
-      name === "mewtwo" ||
-      name === "mew" ||
-      name === "abra" ||
-      name === "kadabra" ||
-      name === "alakazam"
-    ) {
-      return "psychic";
-    }
-  }
-
-  // First check if Pokémon has a defined attack with type
-  if (pokemon.attack && pokemon.attack.type) {
-    return pokemon.attack.type.toLowerCase();
-  }
-  // Check for first move in moves array
-  else if (pokemon.moves && pokemon.moves.length > 0 && pokemon.moves[0].type) {
-    return pokemon.moves[0].type.toLowerCase();
-  }
-
-  // Enhanced type extraction
-  let pokemonType = "normal"; // Default fallback
-
-  // Direct type property as string
-  if (typeof pokemon.type === "string") {
-    pokemonType = pokemon.type;
-  }
-  // Type object with name
-  else if (pokemon.type && pokemon.type.name) {
-    pokemonType = pokemon.type.name;
-  }
-  // Check types array - various formats
-  else if (pokemon.types && pokemon.types.length > 0) {
-    // String format in array
-    if (typeof pokemon.types[0] === "string") {
-      pokemonType = pokemon.types[0];
-    }
-    // PokeAPI format
-    else if (pokemon.types[0].type && pokemon.types[0].type.name) {
-      pokemonType = pokemon.types[0].type.name;
-    }
-    // Object with name property
-    else if (pokemon.types[0].name) {
-      pokemonType = pokemon.types[0].name;
-    }
-  }
-
-  return pokemonType.toLowerCase(); // Return lowercase for consistency
-};
-
-/**
- * Displays animated effects when items are used in battle
- * 
- * @param {Object} item - The item being used
- * @param {boolean} isActive - Whether the animation should be active
- */
-const ItemAnimation = ({ item, isActive }) => {
-  if (!item || !isActive) return null;
-
-  /**
-   * Determines animation style based on item effect type
-   * @returns {Object} Style configuration for the animation
-   */
-  const getItemAnimationStyle = () => {
-    switch (item.effect) {
-      case "heal":
-      case "fullheal":
-        return {
-          animation: "healing",
-          color: item.color || "#99ff99",
-          icon: item.icon || "💊",
-          size: "80px",
-        };
-      case "boost":
-        return {
-          animation: "boost",
-          color: item.color || "#ffff99",
-          icon: item.icon || "⚡",
-          size: "70px",
-        };
-      case "revive":
-        return {
-          animation: "revive",
-          color: item.color || "#ffff99",
-          icon: item.icon || "✨",
-          size: "90px",
-        };
-      default:
-        return {
-          animation: "default",
-          color: item.color || "#ffffff",
-          icon: item.icon || "🎒",
-          size: "60px",
-        };
-    }
-  };
-
-  const style = getItemAnimationStyle();
-
-  return (
-    <motion.div
-      className="absolute z-20 flex items-center justify-center"
-      style={{
-        left: "30%",
-        bottom: "25%",
-        width: style.size,
-        height: style.size,
-        color: style.color,
-        textShadow: `0 0 10px ${style.color}`,
-      }}
-      initial={{ opacity: 0, scale: 0.5, y: 50 }}
-      animate={{
-        opacity: [0, 1, 1, 0],
-        scale: [0.5, 1.2, 1.5, 0.8],
-        y: [50, 0, -50, -100],
-        rotate: style.animation === "boost" ? [0, 15, -15, 0] : 0,
-      }}
-      transition={{
-        duration: 1.5,
-        times: [0, 0.3, 0.7, 1],
-        ease: "easeInOut",
-      }}
-    >
-      <span style={{ fontSize: style.size }}>{style.icon}</span>
-    </motion.div>
-  );
-};
+import {
+  BattlePokemon,
+  AttackAnimation,
+  FaintAnimation,
+  ItemAnimation,
+} from "./battle";
+import { getPokemonType } from "../utils/pokemonTypeUtils";
 
 /**
  * Renders the battle arena with Pokemon sprites, status indicators, and animations
- * 
+ *
  * @param {Object} playerPokemon - The player's active Pokemon
  * @param {Object} enemyPokemon - The enemy Pokemon
  * @param {string} battleState - Current state of the battle ("attacking", "enemyTurn", "useItem", etc.)
@@ -194,6 +39,19 @@ const BattleScene = ({
   isPlayerTurn,
   activeItem,
 }) => {
+  // Check if either Pokemon has fainted
+  const playerFainted = playerPokemon && playerPokemon.currentHp <= 0;
+  const enemyFainted = enemyPokemon && enemyPokemon.currentHp <= 0;
+
+  // Get current move type from battle state for attack animations
+  const currentMoveType = battleState?.lastMove?.type || "normal";
+
+  // New state variables for attack animations and hit detection
+  const animatePlayerAttack = battleState === "attacking";
+  const animateEnemyAttack = battleState === "enemyTurn";
+  const attackHitEnemy = animatePlayerAttack;
+  const attackHitPlayer = animateEnemyAttack;
+
   return (
     <div
       className="relative bg-gradient-to-b from-[#78c8e0] to-[#98e0f8] rounded-lg overflow-hidden border-4 border-[#383030] mb-2"
@@ -213,29 +71,17 @@ const BattleScene = ({
           style={{ zIndex: 2 }}
         ></div>
 
-        {/* Platform for enemy Pokémon */}
-        <div
-          className="absolute bottom-[28%] right-[20%] w-40 h-8 bg-[#615b4b] rounded-full transform rotate-[-5deg] shadow-lg"
-          style={{ zIndex: 3 }}
-        ></div>
-
-        {/* Platform for player Pokémon */}
-        <div
-          className="absolute bottom-[10%] left-[20%] w-40 h-8 bg-[#615b4b] rounded-full transform rotate-[5deg] shadow-lg"
-          style={{ zIndex: 3 }}
-        ></div>
-
-        {/* Enemy Pokémon info panel - TOP LEFT */}
+        {/* Enemy Pokémon info panel - TOP LEFT (unchanged) */}
         {enemyPokemon && (
           <div
             className="absolute top-3 left-3 bg-[#f0f0f0] p-2 rounded-lg border-4 border-[#383030] shadow-md"
-            style={{ zIndex: 10, minWidth: "180px" }}
+            style={{ zIndex: 10, width: "200px" }}
           >
             <div className="flex justify-between items-center mb-1">
-              <h3 className="font-pixel text-lg text-[#383030]">
+              <h3 className="font-pixel text-lg text-[#383030] truncate max-w-[120px]">
                 {enemyPokemon.name || "Enemy"}
               </h3>
-              <span className="font-pixel text-sm bg-[#383030] text-white px-2 py-0.5 rounded-md">
+              <span className="font-pixel text-sm bg-[#383030] text-white px-2 py-0.5 rounded-md whitespace-nowrap ml-1">
                 Lv{enemyPokemon.level || "?"}
               </span>
             </div>
@@ -266,17 +112,17 @@ const BattleScene = ({
           </div>
         )}
 
-        {/* Player Pokémon info panel - BOTTOM RIGHT */}
+        {/* Player Pokémon info panel - BOTTOM RIGHT (unchanged) */}
         {playerPokemon && (
           <div
             className="absolute bottom-3 right-3 bg-[#f0f0f0] p-2 rounded-lg border-4 border-[#383030] shadow-md"
-            style={{ zIndex: 10, minWidth: "180px" }}
+            style={{ zIndex: 10, width: "200px" }}
           >
             <div className="flex justify-between items-center mb-1">
-              <h3 className="font-pixel text-lg text-[#383030]">
+              <h3 className="font-pixel text-lg text-[#383030] truncate max-w-[120px]">
                 {playerPokemon.name || "Your Pokémon"}
               </h3>
-              <span className="font-pixel text-sm bg-[#383030] text-white px-2 py-0.5 rounded-md">
+              <span className="font-pixel text-sm bg-[#383030] text-white px-2 py-0.5 rounded-md whitespace-nowrap ml-1">
                 Lv{playerPokemon.level || "?"}
               </span>
             </div>
@@ -308,7 +154,7 @@ const BattleScene = ({
             <div className="mt-1">
               <div className="flex items-center">
                 <span className="font-pixel text-sm mr-2">EXP:</span>
-                <div className="flex-1 h-4 bg-[#a0a0a0] rounded-sm overflow-hidden border border-[#383030]">
+                <div className="flex-1 h-3 bg-[#a0a0a0] rounded-sm overflow-hidden border border-[#383030]">
                   <div
                     className="h-full bg-[#2090f0] transition-all duration-500"
                     style={{
@@ -329,57 +175,62 @@ const BattleScene = ({
           </div>
         )}
 
-        {/* Battle content - Pokemon placement */}
+        {/* Battle content - Pokemon placement - adjusted positions without platforms */}
         <div className="relative h-full flex justify-between items-end pb-[15%]">
-          {/* Enemy Pokemon - Positioned on platform */}
+          {/* Enemy Pokemon - Improved positioning */}
           <div
-            className="absolute bottom-[30%] right-[20%] transform translate-x-1/2 scale-[2.0]"
+            className="absolute bottom-[35%] right-[20%] transform scale-[1.8]"
             style={{ zIndex: 4 }}
           >
             {enemyPokemon && (
               <BattlePokemon
                 pokemon={enemyPokemon}
                 isEnemy={true}
-                animateAttack={battleState === "enemyTurn"}
+                animateAttack={animateEnemyAttack}
+                isHit={attackHitEnemy}
               />
             )}
           </div>
 
-          {/* Player Pokemon - Positioned on platform */}
+          {/* Player Pokemon - Improved positioning */}
           <div
-            className="absolute bottom-[12%] left-[20%] transform -translate-x-1/2 scale-[1.75]"
+            className="absolute bottom-[18%] left-[20%] transform scale-[1.8]"
             style={{ zIndex: 4 }}
           >
             {playerPokemon && (
               <BattlePokemon
                 pokemon={playerPokemon}
                 isEnemy={false}
-                animateAttack={battleState === "attacking"}
+                animateAttack={animatePlayerAttack}
+                isHit={attackHitPlayer}
               />
             )}
           </div>
         </div>
 
-        {/* Battle animations */}
-        {battleState === "attacking" && playerPokemon && enemyPokemon && (
-          <AttackAnimation
-            type={getPokemonType(playerPokemon)}
-            isActive={true}
-            isEnemy={false}
-          />
-        )}
-
-        {battleState === "enemyTurn" && playerPokemon && enemyPokemon && (
-          <AttackAnimation
-            type={getPokemonType(enemyPokemon)}
-            isActive={true}
-            isEnemy={true}
-          />
-        )}
+        {/* Attack animations */}
+        <AttackAnimation
+          isActive={animatePlayerAttack}
+          isEnemy={false}
+          type={currentMoveType}
+        />
+        <AttackAnimation
+          isActive={animateEnemyAttack}
+          isEnemy={true}
+          type={currentMoveType}
+        />
 
         {/* Item use animation */}
         {battleState === "useItem" && activeItem && (
           <ItemAnimation item={activeItem} isActive={true} />
+        )}
+
+        {/* Faint animations */}
+        {playerPokemon && playerPokemon.currentHp <= 0 && (
+          <FaintAnimation isEnemy={false} />
+        )}
+        {enemyPokemon && enemyPokemon.currentHp <= 0 && (
+          <FaintAnimation isEnemy={true} />
         )}
       </div>
     </div>

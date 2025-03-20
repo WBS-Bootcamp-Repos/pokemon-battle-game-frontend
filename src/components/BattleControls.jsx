@@ -1,12 +1,48 @@
 /**
  * BattleControls Component
- * 
+ *
  * Provides the main battle interface for player actions during Pokemon battles.
  * Includes attack functionality with dynamic move generation based on Pokemon type,
  * item usage interface, and Pokemon switching capabilities.
  */
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import {
+  getPokemonType,
+  generateTypeBasedMove,
+} from "../utils/pokemonTypeUtils";
+import { getPokemonId } from "../utils/spriteUtils";
+import { ItemSelectionModal, ChoosePokemonScreen } from "./battle";
+
+/**
+ * Gets a CSS class for styling type badges based on Pokemon type
+ * @param {string} type - The Pokemon type
+ * @returns {string} CSS class for styling
+ */
+const getTypeColorClass = (type) => {
+  const typeColors = {
+    normal: "bg-[#A8A878]",
+    fire: "bg-[#F08030]",
+    water: "bg-[#6890F0]",
+    grass: "bg-[#78C850]",
+    electric: "bg-[#F8D030]",
+    ice: "bg-[#98D8D8]",
+    fighting: "bg-[#C03028]",
+    poison: "bg-[#A040A0]",
+    ground: "bg-[#E0C068]",
+    flying: "bg-[#A890F0]",
+    psychic: "bg-[#F85888]",
+    bug: "bg-[#A8B820]",
+    rock: "bg-[#B8A038]",
+    ghost: "bg-[#705898]",
+    dragon: "bg-[#7038F8]",
+    dark: "bg-[#705848]",
+    steel: "bg-[#B8B8D0]",
+    fairy: "bg-[#EE99AC]",
+  };
+
+  return typeColors[type.toLowerCase()] || "bg-[#A8A878]";
+};
 
 const BattleControls = ({
   playerPokemon,
@@ -28,13 +64,28 @@ const BattleControls = ({
   // Update current move when player Pokemon changes
   useEffect(() => {
     if (playerPokemon) {
-      const move = generateTypeBasedMove();
+      const move = generateTypeBasedMove(playerPokemon);
       setCurrentMove(move);
+    }
+  }, [playerPokemon]);
+
+  // Auto-show Pokemon switch menu when the active Pokemon faints
+  useEffect(() => {
+    if (playerPokemon && playerPokemon.currentHp <= 0) {
+      // Show Pokemon switch menu automatically when Pokemon faints
+      setShowPokemon(true);
+      setShowItems(false);
     }
   }, [playerPokemon]);
 
   // Reset all submenus to return to main battle controls
   const resetMenus = () => {
+    // Don't reset Pokemon menu if current Pokemon is fainted
+    if (playerPokemon && playerPokemon.currentHp <= 0) {
+      setShowItems(false);
+      return;
+    }
+
     setShowItems(false);
     setShowPokemon(false);
   };
@@ -43,251 +94,11 @@ const BattleControls = ({
   const canFight = playerPokemon && playerPokemon.currentHp > 0;
 
   /**
-   * Generates a type-appropriate move for the current Pokemon
-   * Follows fallback logic:
-   * 1. Use hardcoded type for known Pokemon
-   * 2. Use existing attack if available
-   * 3. Use first move from moves array if available
-   * 4. Extract type from Pokemon data and generate a move
-   * 5. Fallback to normal-type move if all else fails
-   */
-  const generateTypeBasedMove = () => {
-    if (!playerPokemon) return null;
-
-    // Handle special cases for starters and other common Pokémon by name
-    if (playerPokemon.name) {
-      const name = playerPokemon.name.toLowerCase();
-
-      // Map of known Pokémon names to their types
-      const knownTypes = {
-        // Grass types
-        bulbasaur: "grass",
-        ivysaur: "grass",
-        venusaur: "grass",
-        oddish: "grass",
-        gloom: "grass",
-        vileplume: "grass",
-        bellsprout: "grass",
-        weepinbell: "grass",
-        victreebel: "grass",
-        exeggcute: "grass",
-        exeggutor: "grass",
-        tangela: "grass",
-
-        // Fire types
-        charmander: "fire",
-        charmeleon: "fire",
-        charizard: "fire",
-        vulpix: "fire",
-        ninetales: "fire",
-        growlithe: "fire",
-        arcanine: "fire",
-        ponyta: "fire",
-        rapidash: "fire",
-        magmar: "fire",
-        flareon: "fire",
-        moltres: "fire",
-
-        // Water types
-        squirtle: "water",
-        wartortle: "water",
-        blastoise: "water",
-        psyduck: "water",
-        golduck: "water",
-        poliwag: "water",
-        poliwhirl: "water",
-        poliwrath: "water",
-        staryu: "water",
-        starmie: "water",
-        magikarp: "water",
-        gyarados: "water",
-        lapras: "water",
-        vaporeon: "water",
-
-        // Electric types
-        pikachu: "electric",
-        raichu: "electric",
-        magnemite: "electric",
-        magneton: "electric",
-        voltorb: "electric",
-        electrode: "electric",
-        electabuzz: "electric",
-        jolteon: "electric",
-        zapdos: "electric",
-
-        // Psychic types
-        abra: "psychic",
-        kadabra: "psychic",
-        alakazam: "psychic",
-        slowpoke: "psychic",
-        slowbro: "psychic",
-        drowzee: "psychic",
-        hypno: "psychic",
-        exeggcute: "psychic",
-        exeggutor: "psychic",
-        starmie: "psychic",
-        "mr. mime": "psychic",
-        mrmime: "psychic",
-        jynx: "psychic",
-        mewtwo: "psychic",
-        mew: "psychic",
-
-        // Ghost types
-        gastly: "ghost",
-        haunter: "ghost",
-        gengar: "ghost",
-
-        // Ice types
-        jynx: "ice",
-        articuno: "ice",
-
-        // Dragon types
-        dratini: "dragon",
-        dragonair: "dragon",
-        dragonite: "dragon",
-
-        // Normal types
-        pidgey: "normal",
-        rattata: "normal",
-        eevee: "normal",
-        snorlax: "normal",
-        ditto: "normal",
-      };
-
-      // If we have a known type for this Pokémon, use it
-      if (knownTypes[name]) {
-        // Signature moves for each type
-        const typeToMove = {
-          normal: "Tackle",
-          fire: "Ember",
-          water: "Water Gun",
-          grass: "Vine Whip",
-          electric: "Thunder Shock",
-          poison: "Poison Sting",
-          psychic: "Confusion",
-          fighting: "Karate Chop",
-          rock: "Rock Throw",
-          ground: "Sand Attack",
-          flying: "Gust",
-          ice: "Ice Shard",
-          bug: "Bug Bite",
-          dragon: "Dragon Rage",
-          ghost: "Shadow Ball",
-          fairy: "Fairy Wind",
-          dark: "Bite",
-          steel: "Metal Claw",
-        };
-
-        // Get move based on the known type
-        const pokemonType = knownTypes[name];
-        const attackName = typeToMove[pokemonType] || "Tackle";
-
-        return {
-          name: attackName,
-          type: pokemonType,
-          power: Math.floor(5 + (playerPokemon.level || 1) * 1.5),
-        };
-      }
-    }
-
-    // Special case for Venusaur - ensure it has grass type
-    if (playerPokemon.name && playerPokemon.name.toLowerCase() === "venusaur") {
-      if (
-        typeof playerPokemon.type !== "string" ||
-        playerPokemon.type.toLowerCase() !== "grass"
-      ) {
-        playerPokemon.type = "grass";
-      }
-    }
-
-    // If the Pokémon already has an attack property with name and type, use it directly
-    if (
-      playerPokemon.attack &&
-      playerPokemon.attack.name &&
-      playerPokemon.attack.type
-    ) {
-      return {
-        name: playerPokemon.attack.name,
-        type: playerPokemon.attack.type.toLowerCase(),
-        power:
-          playerPokemon.attack.power ||
-          Math.floor(5 + (playerPokemon.level || 1) * 1.5),
-      };
-    }
-
-    // If Pokémon has moves array, use the first one
-    if (playerPokemon.moves && playerPokemon.moves.length > 0) {
-      const move = playerPokemon.moves[0];
-      return {
-        name: move.name,
-        type: move.type.toLowerCase(),
-        power: move.power || Math.floor(5 + (playerPokemon.level || 1) * 1.5),
-      };
-    }
-
-    // Extract type from different possible Pokémon object structures as fallback
-    let pokemonType = "normal"; // Default fallback type
-
-    // Check different possible locations for type information
-    if (typeof playerPokemon.type === "string") {
-      pokemonType = playerPokemon.type;
-    } else if (playerPokemon.type && playerPokemon.type.name) {
-      pokemonType = playerPokemon.type.name;
-    } else if (playerPokemon.types && playerPokemon.types.length > 0) {
-      if (typeof playerPokemon.types[0] === "string") {
-        pokemonType = playerPokemon.types[0];
-      } else if (
-        playerPokemon.types[0].type &&
-        playerPokemon.types[0].type.name
-      ) {
-        pokemonType = playerPokemon.types[0].type.name;
-      } else if (playerPokemon.types[0].name) {
-        pokemonType = playerPokemon.types[0].name;
-      }
-    }
-
-    // Use lowercase for consistency in switch statement
-    pokemonType = pokemonType.toLowerCase();
-
-    // Signature moves for each type
-    const typeToMove = {
-      normal: "Tackle",
-      fire: "Ember",
-      water: "Water Gun",
-      grass: "Vine Whip",
-      electric: "Thunder Shock",
-      poison: "Poison Sting",
-      psychic: "Confusion",
-      fighting: "Karate Chop",
-      rock: "Rock Throw",
-      ground: "Sand Attack",
-      flying: "Gust",
-      ice: "Ice Shard",
-      bug: "Bug Bite",
-      dragon: "Dragon Rage",
-      ghost: "Shadow Ball",
-      fairy: "Fairy Wind",
-      dark: "Bite",
-      steel: "Metal Claw",
-    };
-
-    // Get move based on type, fallback to Tackle if type not found
-    const attackName = typeToMove[pokemonType] || "Tackle";
-
-    return {
-      name: attackName,
-      type: pokemonType,
-      power: Math.floor(5 + (playerPokemon.level || 1) * 1.5),
-    };
-  };
-
-  /**
-   * Handles player attack action
-   * Generates appropriate move and updates Pokemon's attack property
+   * Handle player's attack action
    */
   const handleAttack = () => {
     // Get the move based on the Pokémon's type
-    const move = generateTypeBasedMove();
+    const move = generateTypeBasedMove(playerPokemon);
 
     // Update the current move state
     setCurrentMove(move);
@@ -452,9 +263,29 @@ const BattleControls = ({
                     mon.currentHp <= 0
                   }
                 >
-                  <div>
-                    <span>{mon.name}</span>
-                    <span className="text-xs block">Lv{mon.level}</span>
+                  <div className="flex items-center">
+                    <img
+                      src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${getPokemonId(
+                        mon.name
+                      )}.png`}
+                      alt={mon.name}
+                      className="w-10 h-10 mr-2 pixelated"
+                      onError={(e) => {
+                        e.target.src =
+                          "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png";
+                      }}
+                    />
+                    <div>
+                      <span className="capitalize">{mon.name}</span>
+                      <span className="text-xs block">Lv{mon.level}</span>
+                      <span
+                        className={`text-xs px-1 rounded capitalize mt-1 inline-block text-white ${getTypeColorClass(
+                          getPokemonType(mon)
+                        )}`}
+                      >
+                        {getPokemonType(mon)}
+                      </span>
+                    </div>
                   </div>
                   <div className="text-right">
                     <span className="text-xs block">
@@ -489,17 +320,19 @@ const BattleControls = ({
       {/* Pokémon type and move info */}
       {!showItems && !showPokemon && playerPokemon && (
         <div className="mt-3 bg-[#d0d0d0] p-2 rounded-md border-2 border-[#303030]">
-          <div className="text-center text-xs font-pixel">
+          <div className="text-center font-pixel">
             <div className="font-bold capitalize">
               {playerPokemon.name}'s Move:
             </div>
-            <div className="text-[#383030]">
-              {currentMove?.name || "Attack"}
-              {" ("}
-              <span className="capitalize">
+            <div className="flex items-center justify-center mt-1">
+              <span className="mr-1">{currentMove?.name || "Attack"}</span>
+              <span
+                className={`text-xs px-2 py-0.5 rounded capitalize text-white ${getTypeColorClass(
+                  currentMove?.type || "normal"
+                )}`}
+              >
                 {currentMove?.type || "normal"}
               </span>
-              {"-type)"}
             </div>
           </div>
         </div>
